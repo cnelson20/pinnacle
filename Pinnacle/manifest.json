@@ -16,5 +16,5 @@
         "128": "/images/pin128.png"
     },
     "options_page": "options.html",
-    "permissions": ["storage", "activeTab", "scripting"]
+    "permissions": ["storage", "activeTab", "scripting", "tabs"]
 }

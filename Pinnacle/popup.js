@@ -1,5 +1,8 @@
 const commentButton = document.getElementById('addCommentButton');
-const tab = getCurrentTab();
+const viewButton = document.getElementById('viewCommentsButton');
+const commentText = document.getElementById('commentText');
+
+const tabPromise = chrome.tabs.query({ active: true, currentWindow: true });
 const customCSS = ".pinnacle-comment-wrapper {\
     position: relative;\
 }\
@@ -18,38 +21,30 @@ const customCSS = ".pinnacle-comment-wrapper {\
     background-color: rgba(150, 150, 150, 0.5);\
 }";
 
-chrome.scripting.insertCSS({
-    target : {tabId : tab.id},
-    css : customCSS,
-});
+async function insertCustomCSS() {
+    let [tab] = await tabPromise;
+    chrome.scripting.insertCSS({
+        target : {tabId : tab.id},
+        css : customCSS,
+    });
+}
+
+insertCustomCSS();
 
 commentButton.addEventListener('click', async () => {  
+    let [tab] = await tabPromise;
+    chrome.storage.sync.set({
+        'comment' : commentText.value.trimEnd()
+    });
     chrome.scripting.executeScript({
-        target: {tabId: tabId},
-        func : createComment,
+        target: {tabId: tab.id},
+        files : ['createcomments.js'],
     });
 });
-
-function createComment() {
-    let commentWrapper = document.createElement('div');
-    let commentTarget = document.createElement('mark');
-    let commentContents = document.createElement('div');
-    let commentParagraph = document.createElement('p');
-    
-    commentWrapper.classList.add('pinnacle-comment-wrapper');
-    commentWrapper.appendChild(commentTarget);
-    commentWrapper.appendChild(commentContents);
-
-    commentTarget.classList.add('pinnacle-anchor-highlight');
-    commentContents.classList.add('pinnacle-comment'); 
-    commentContents.appendChild(commentParagraph);
-    commentParagraph.textContent = "This is a comment!";
-
-    document.body.appendChild(commentWrapper);
-}
-
-async function getCurrentTab() {
-    let queryOptions = { active: true, currentWindow: true };
-    let [tab] = await chrome.tabs.query(queryOptions);
-    return tab;
-}
+viewButton.addEventListener('click', async () => {
+    let [tab] = await tabPromise;
+    chrome.scripting.executeScript({
+        target: {tabId: tab.id},
+        files : ['getcomments.js'],
+    });
+});

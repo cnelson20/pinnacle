@@ -5,6 +5,7 @@
 */
 
 var newCommentText = '';
+var wantedComment;
 
 function createComment() {
     //getNewCommentText();
@@ -22,9 +23,6 @@ function createComment() {
 
     commentTarget.classList.add('pinnacle-anchor-highlight');
     
-    let wantedComment = JSON.parse(localStorage.getItem('comments'));
-    wantedComment = wantedComment[wantedComment.length - 1];
-
     commentTarget.textContent = wantedComment[1];
     
     commentContents.classList.add('pinnacle-comment'); 
@@ -50,10 +48,17 @@ function createComment() {
 function captureSelection() {
     let s = document.getSelection();
     let old = localStorage.getItem('comments');
-    if (old == null) {old = '[]';}
+    if (old == null) {old = '{}';}
+    let newcomment = [getDomPath(s.focusNode.parentElement),s.focusNode.data.substring(s.baseOffset, s.extentOffset), newCommentText, s.baseOffset, s.extentOffset];
     old = JSON.parse(old);
-    old.push([getDomPath(s.focusNode.parentElement),s.focusNode.data.substring(s.baseOffset, s.extentOffset), newCommentText, s.baseOffset, s.extentOffset]);
+    if (newcomment[0] in old) {
+        old[newcomment[0]].push(newcomment);
+    } else {
+        old[newcomment[0]] = [newcomment];
+    }
     localStorage.setItem('comments', JSON.stringify(old));
+
+    wantedComment = newcomment;
 }
 
 function getNewCommentText() {

@@ -58,7 +58,7 @@ function printComments() {
     if (comments == null) {comments = '[]';}
     comments = JSON.parse(comments);
     for (i in comments) {
-        createCommentFromDetails(comments[i]);
+        comments[i].forEach(createCommentFromDetails);
     }
 }
 
@@ -78,6 +78,7 @@ function createCommentFromDetails(commentdetails) {
 
     commentTarget.textContent = text;
     
+    commentContents.style = document.body.style;
     commentContents.classList.add('pinnacle-comment'); 
     commentContents.appendChild(commentParagraph);
     commentParagraph.textContent = commentvalue;

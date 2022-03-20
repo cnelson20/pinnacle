@@ -63,7 +63,7 @@ function printComments() {
 }
 
 function createCommentFromDetails(commentdetails) {
-    let [dompath, text, commentvalue, loffset, roffset] = commentdetails; 
+    let [dompath, text, commentvalue, loffset, roffset, color] = commentdetails; 
 
     let commentWrapper = document.createElement('span');
     let commentTarget = document.createElement('mark');
@@ -80,6 +80,8 @@ function createCommentFromDetails(commentdetails) {
     
     commentContents.style = document.body.style;
     commentContents.classList.add('pinnacle-comment'); 
+	commentContents.classList.add('pinnacle-text-formatter'); 
+	commentContents.style.color = color;
     commentContents.appendChild(commentParagraph);
     commentParagraph.textContent = commentvalue;
 

@@ -42,6 +42,10 @@ commentButton.addEventListener('click', async () => {
     chrome.storage.sync.set({
         'comment' : commentText.value.trimEnd()
     });
+	chrome.scripting.executeScript({
+        target: {tabId: tab.id},
+        files : ['functions.js'],
+    });
     chrome.scripting.executeScript({
         target: {tabId: tab.id},
         files : ['createcomments.js'],
@@ -49,6 +53,10 @@ commentButton.addEventListener('click', async () => {
 });
 viewButton.addEventListener('click', async () => {
     let [tab] = await tabPromise;
+	chrome.scripting.executeScript({
+        target: {tabId: tab.id},
+        files : ['functions.js'],
+    });
     chrome.scripting.executeScript({
         target: {tabId: tab.id},
         files : ['getcomments.js'],

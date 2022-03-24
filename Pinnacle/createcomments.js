@@ -1,15 +1,13 @@
 /*
     TODO: 
-    - use a textarea in the popup so that the user can add their own text to the comment
     - make comment body not inherit styling from the parent element
 */
 
 var newCommentText = '';
-var wantedComment;
 
 function createComment() {
     //getNewCommentText();
-    captureSelection();
+    let wantedComment = captureSelection();
 
     /* Create necessary classes */
     let commentWrapper = document.createElement('span');
@@ -30,9 +28,11 @@ function createComment() {
     commentParagraph.innerHTML = newCommentText;
 
     console.log(wantedComment[0]); // DOM path
-    console.log(wantedComment[2]); // comment contents
-    console.log(wantedComment[3]);
-    console.log(wantedComment[4]);
+    console.log(wantedComment[1]); // Selected Area
+    console.log(wantedComment[2]); // Actual Comment (What they want to say!)
+    console.log(wantedComment[3]); // focusNode [ bigger area for indexOf() ]
+    console.log(wantedComment[4]); // Base offset
+    console.log(wantedComment[5]); // Extent offset
     /* 
         We want the innerHTML to include the commentWrapper <span> && </span> tags.
         creating a parent and then adding the wrapper as a child works sufficiently.
@@ -41,7 +41,7 @@ function createComment() {
     commentWrapperParent.appendChild(commentWrapper);
     
     let parentElem = findText(document.body, wantedComment[1]);    
-    let commentStartIndex = parentElem.innerHTML.indexOf(wantedComment[1]);
+    let commentStartIndex = parentElem.innerHTML.indexOf(wantedComment[3]) + Math.min(wantedComment[4], wantedComment[5]);
     parentElem.innerHTML = parentElem.innerHTML.substring(0,commentStartIndex) + commentWrapperParent.innerHTML + parentElem.innerHTML.substring(commentStartIndex + wantedComment[1].length);
 }
 
@@ -49,7 +49,8 @@ function captureSelection() {
     let s = document.getSelection();
     let old = localStorage.getItem('comments');
     if (old == null) {old = '{}';}
-    let newcomment = [getDomPath(s.focusNode.parentElement),s.focusNode.data.substring(s.baseOffset, s.extentOffset), newCommentText, s.baseOffset, s.extentOffset];
+    console.log(s.focusNode)
+    let newcomment = [getDomPath(s.focusNode.parentElement), s.focusNode.data.substring(s.baseOffset, s.extentOffset), newCommentText, s.focusNode.textContent, s.baseOffset, s.extentOffset];
     old = JSON.parse(old);
     if (newcomment[0] in old) {
         old[newcomment[0]].push(newcomment);
@@ -58,14 +59,12 @@ function captureSelection() {
     }
     localStorage.setItem('comments', JSON.stringify(old));
 
-    wantedComment = newcomment;
+    return newcomment;
 }
 
 function getNewCommentText() {
     chrome.storage.sync.get(['comment'], (result) => {
-        console.log(result.comment);
         newCommentText = result.comment;
-        console.log(newCommentText);
         createComment();
     });
 }

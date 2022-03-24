@@ -16,6 +16,12 @@ const customCSS = ".pinnacle-comment-wrapper {\
     right: 30;\
     bottom: 0;\
 }\
+.pinnacle-text-formatter {\
+	color : black;\
+	text-decoration:none;\
+	font-size:1rem;\
+	font-family:Calibri;\
+}\
 \
 .pinnacle-anchor-highlight {\
     background-color: rgba(150, 150, 150, 0.5);\
@@ -36,6 +42,10 @@ commentButton.addEventListener('click', async () => {
     chrome.storage.sync.set({
         'comment' : commentText.value.trimEnd()
     });
+	chrome.scripting.executeScript({
+        target: {tabId: tab.id},
+        files : ['functions.js'],
+    });
     chrome.scripting.executeScript({
         target: {tabId: tab.id},
         files : ['createcomments.js'],
@@ -43,6 +53,10 @@ commentButton.addEventListener('click', async () => {
 });
 viewButton.addEventListener('click', async () => {
     let [tab] = await tabPromise;
+	chrome.scripting.executeScript({
+        target: {tabId: tab.id},
+        files : ['functions.js'],
+    });
     chrome.scripting.executeScript({
         target: {tabId: tab.id},
         files : ['getcomments.js'],

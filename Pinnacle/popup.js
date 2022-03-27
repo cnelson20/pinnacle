@@ -28,7 +28,7 @@ const customCSS = ".pinnacle-comment-wrapper {\
 }\
 \
 .pinnacle-anchor-highlight {\
-    background-color: rgba(150, 150, 150, 0.5);\
+    background-color: rgba(247, 232, 0, 0.5);\
 }";
 
 async function insertCustomCSS() {

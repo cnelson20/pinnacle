@@ -3,29 +3,6 @@ const viewButton = document.getElementById('viewCommentsButton');
 const commentText = document.getElementById('commentText');
 
 const tabPromise = chrome.tabs.query({ active: true, currentWindow: true });
-async function insertCustomCSS() {
-    let [tab] = await tabPromise;
-    chrome.scripting.insertCSS({
-        target : {tabId : tab.id},
-        files : ['pinnacle.css'],
-    });
-    chrome.storage.sync.get(['enableHover'], (result) => {
-        if (result.enableHover) {
-            chrome.scripting.insertCSS({
-                target : {tabId : tab.id},
-                files : ['pinnacle_hover.css'],
-            });
-        }
-    });
-}
-
-insertCustomCSS();
-
-chrome.storage.sync.get(['autoLoad'], (result) => {
-    if (result.autoLoad) {
-        loadComments();
-    }
-});
 
 commentButton.addEventListener('click', async () => {  
     let [tab] = await tabPromise;

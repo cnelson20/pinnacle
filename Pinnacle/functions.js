@@ -122,15 +122,34 @@ function createCommentFromDetails(commentdetails) {
 	
     commentParagraph.textContent = commentvalue;
 	commentParagraph.classList.add('pinnacle-text-formatter'); 
-
-    /* 
+    chrome.storage.sync.get(['enableHover'], (result) => {
+        console.log("loaded result!", result);
+        if (result.enableHover) {
+            commentContents.classList.add('pinnacle-comment-hov');
+            commentParagraph.classList.add('pinnacle-text-formatter-hov');
+        }
+        
+        /* 
         We want the innerHTML to include the commentWrapper <span> && </span> tags.
         creating a parent and then adding the wrapper as a child works sufficiently.
-    */
-    let commentWrapperParent = document.createElement('div'); 
-    commentWrapperParent.appendChild(commentWrapper);
+        */
+        let commentWrapperParent = document.createElement('div'); 
+        commentWrapperParent.appendChild(commentWrapper);
     
-    let parentElem = findText(getElementByDomPathLimit(dompath), focusText);    
-    let commentStartIndex = parentElem.innerHTML.indexOf(focusText) + Math.min(baseoffset, extentoffset);
-    parentElem.innerHTML = parentElem.innerHTML.substring(0,commentStartIndex) + commentWrapperParent.innerHTML + parentElem.innerHTML.substring(commentStartIndex + text.length);
+        let parentElem = findText(getElementByDomPathLimit(dompath), focusText);    
+        let commentStartIndex = parentElem.innerHTML.indexOf(focusText) + Math.min(baseoffset, extentoffset);
+        parentElem.innerHTML = parentElem.innerHTML.substring(0,commentStartIndex) + commentWrapperParent.innerHTML + parentElem.innerHTML.substring(commentStartIndex + text.length);
+    });
+}
+
+function printComments() {
+    let comments = localStorage.getItem('comments');
+	let pagelocation = window.location.toString().substring(window.location.toString().indexOf('//') + 2);
+	
+    if (comments == null) {comments = '[]';}
+    comments = JSON.parse(comments)[pagelocation];
+    for (i in comments) {
+		console.log(comments[i]);
+        comments[i].forEach(createCommentFromDetails);
+    }
 }

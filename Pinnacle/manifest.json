@@ -15,6 +15,13 @@
         "48": "/images/pin48.png",
         "128": "/images/pin128.png"
     },
+    "content_scripts" : [
+        {
+            "matches" : ["http://*/*", "https://*/*"],
+            "css" : ["pinnacle.css"],
+            "js" : ["functions.js", "content_script.js"]
+        }
+    ],
     "options_page": "options.html",
     "permissions": ["storage", "activeTab", "scripting", "tabs"]
 }

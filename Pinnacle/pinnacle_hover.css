@@ -1,0 +1,6 @@
+.pinnacle-comment:hover {
+    background-color: rgba(calc(255 - 173), calc(255 - 216), calc(255 - 230), 0.5);
+}
+.pinnacle-text-formatter:hover {
+    color : white;
+}

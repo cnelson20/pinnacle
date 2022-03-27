@@ -9,9 +9,23 @@ async function insertCustomCSS() {
         target : {tabId : tab.id},
         files : ['pinnacle.css'],
     });
+    chrome.storage.sync.get(['enableHover'], (result) => {
+        if (result.enableHover) {
+            chrome.scripting.insertCSS({
+                target : {tabId : tab.id},
+                files : ['pinnacle_hover.css'],
+            });
+        }
+    });
 }
 
 insertCustomCSS();
+
+chrome.storage.sync.get(['autoLoad'], (result) => {
+    if (result.autoLoad) {
+        loadComments();
+    }
+});
 
 commentButton.addEventListener('click', async () => {  
     let [tab] = await tabPromise;
@@ -27,7 +41,9 @@ commentButton.addEventListener('click', async () => {
         files : ['createcomments.js'],
     });
 });
-viewButton.addEventListener('click', async () => {
+viewButton.addEventListener('click', loadComments); 
+
+async function loadComments() {
     let [tab] = await tabPromise;
 	chrome.scripting.executeScript({
         target: {tabId: tab.id},
@@ -37,4 +53,4 @@ viewButton.addEventListener('click', async () => {
         target: {tabId: tab.id},
         files : ['getcomments.js'],
     });
-});
+}

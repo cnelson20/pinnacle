@@ -1,6 +1,7 @@
 const commentButton = document.getElementById('addCommentButton');
 const viewButton = document.getElementById('viewCommentsButton');
 const commentText = document.getElementById('commentText');
+const clearButton = document.getElementById('clearComments');
 
 const tabPromise = chrome.tabs.query({ active: true, currentWindow: true });
 async function insertCustomCSS() {
@@ -41,6 +42,19 @@ commentButton.addEventListener('click', async () => {
         files : ['createcomments.js'],
     });
 });
+
+clearComments.addEventListener('click', async () => {  
+    let [tab] = await tabPromise;
+	chrome.scripting.executeScript({
+        target: {tabId: tab.id},
+        func: clearCommentsFunction,
+    });
+});
+
+function clearCommentsFunction() {
+    delete localStorage['comments'];
+}
+
 viewButton.addEventListener('click', loadComments); 
 
 async function loadComments() {

@@ -20,15 +20,25 @@ function captureSelection() {
     let s = document.getSelection();
 	for (let i = 0; i < s.focusNode.parentElement.classList.length; i++) {
 		//console.log(s.focusNode.parentElement.classList[i].substring(0,'pinnacle-'.length));
-		if (s.focusNode.parentElement.classList[i].substring(0,'pinnacle-'.length) == 'pinnacle-') {
+        let name = s.focusNode.parentElement.classList[i];
+		if (name.substring(0,'pinnacle-'.length) == 'pinnacle-' && name != 'pinnacle-anchor-highlight') {
 			return [];
 		}
 	}
-	
+	let anchorElem = s.focusNode.parentElement;
+    if (anchorElem.tagName == 'MARK' && anchorElem.parentElement.tagName == "SPAN"){
+        anchorElem = anchorElem.parentElement.parentElement;
+    }
     let old = localStorage.getItem('comments');
     if (old == null) {old = '{}';}
     console.log(s.focusNode)
-    let newcomment = [getDomPath(s.focusNode.parentElement), s.focusNode.data.substring(s.baseOffset, s.extentOffset), newCommentText, s.focusNode.textContent, s.baseOffset, s.extentOffset, getInverseBackgroundColor(s.focusNode.parentElement)];
+    let newcomment = [
+        getDomPath(anchorElem), 
+        s.focusNode.data.substring(s.baseOffset, s.extentOffset), 
+        newCommentText, s.focusNode.textContent, 
+        s.baseOffset, s.extentOffset, 
+        getInverseBackgroundColor(anchorElem)
+    ];
     old = JSON.parse(old);
 	
 	let pagelocation = window.location.toString().substring(window.location.toString().indexOf('//') + 2);

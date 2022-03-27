@@ -3,7 +3,6 @@ const viewButton = document.getElementById('viewCommentsButton');
 const commentText = document.getElementById('commentText');
 
 const tabPromise = chrome.tabs.query({ active: true, currentWindow: true });
-
 async function insertCustomCSS() {
     let [tab] = await tabPromise;
     chrome.scripting.insertCSS({

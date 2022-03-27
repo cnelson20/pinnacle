@@ -9,18 +9,22 @@ const customCSS = ".pinnacle-comment-wrapper {\
 .pinnacle-comment {\
     padding : 2px;\
     position: absolute;\
-    background-color: rgba(173, 216, 230, 0.5);\
+    background-color: rgba(173, 216, 230, 0.8);\
     align-self: right;\
     text-align: center;\
     min-width: 200px;\
+    border-radius: 10px;\
+    border: 1px solid black;\
     right: 30;\
     bottom: 0;\
+    font-weight: normal;\
+    text-decoration: none;\
 }\
 .pinnacle-text-formatter {\
 	color : black;\
 	text-decoration:none;\
 	font-size:1rem;\
-	font-family:Calibri;\
+	font-family:Helvetica;\
 }\
 \
 .pinnacle-anchor-highlight {\

@@ -1,6 +1,8 @@
 chrome.storage.sync.get(['autoLoad'], (result) => {
-    if (result.autoLoad) {
+    if (result.autoLoad) {  
         insertComments();
+        construct_sidebar();
+
     }
 });
 

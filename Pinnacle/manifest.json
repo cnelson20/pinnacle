@@ -7,7 +7,7 @@
         "server_worker" : "background.js"
     },
     "action" : {
-        "default_popup" : "popup.html"
+        "default_popup" : "/popup/popup.html"
     },
     "icons" : {
         "16": "/images/pin16.png",
@@ -19,7 +19,7 @@
         {
             "matches" : ["http://*/*", "https://*/*"],
             "css" : ["pinnacle.css"],
-            "js" : ["functions.js", "content_script.js"]
+            "js" : ["functions.js", "content_script.js", "/sidebar/sidebar.js"]
         }
     ],
     "options_page": "options.html",

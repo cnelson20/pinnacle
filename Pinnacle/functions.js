@@ -99,57 +99,57 @@ function getDomPath(el) {
     return stack.join(' > ');
 }
 
-function createCommentFromDetails(commentdetails) {
-    let [dompath, text, commentvalue, focusText, baseoffset, extentoffset, color] = commentdetails; 
+function printComments() {
+    establish_anchors();
+    return;
+}
+function establish_anchor(key, commentsArray) {
+    let [dompath, text, commentvalue, focusText, baseoffset, extentoffset, color] = commentsArray[0]; 
 
     let commentWrapper = document.createElement('span');
     let commentTarget = document.createElement('mark');
-    let commentContents = document.createElement('span');
-    let commentParagraph = document.createElement('p');
-    
+
     commentWrapper.classList.add('pinnacle-comment-wrapper');
     commentWrapper.appendChild(commentTarget);
-    commentWrapper.appendChild(commentContents);
-
+    
     commentTarget.classList.add('pinnacle-anchor-highlight');
-
     commentTarget.textContent = text;
-    
-    commentContents.style = document.body.style;
-    commentContents.classList.add('pinnacle-comment'); 
-	commentContents.style.color = color;
-    commentContents.appendChild(commentParagraph);
-	
-    commentParagraph.textContent = commentvalue;
-	commentParagraph.classList.add('pinnacle-text-formatter'); 
-    chrome.storage.sync.get(['enableHover'], (result) => {
-        console.log("loaded result!", result);
-        if (result.enableHover) {
-            commentContents.classList.add('pinnacle-comment-hov');
-            commentParagraph.classList.add('pinnacle-text-formatter-hov');
+    //() => {display_anchor(key)}
+    /* 
+    We want the innerHTML to include the commentWrapper <span> && </span> tags.
+    creating a parent and then adding the wrapper as a child works sufficiently.
+    */
+    let commentWrapperParent = document.createElement('div'); 
+    commentWrapperParent.appendChild(commentWrapper);
+    //handle errors PLEASE
+    let parentElem = findText(document.body, focusText);    
+    let commentStartIndex = parentElem.textContent.indexOf(focusText) + Math.min(baseoffset, extentoffset);
+    parentElem.innerHTML = parentElem.textContent.substring(0,commentStartIndex) + commentWrapperParent.innerHTML + parentElem.textContent.substring(commentStartIndex + text.length);
+    let array = parentElem.getElementsByClassName("pinnacle-anchor-highlight");
+    for (i in array) {
+        let div = array[i];
+        if (div.onclick == null) {
+            div.onclick = () => {display_anchor(commentsArray)};
         }
-        
-        /* 
-        We want the innerHTML to include the commentWrapper <span> && </span> tags.
-        creating a parent and then adding the wrapper as a child works sufficiently.
-        */
-        let commentWrapperParent = document.createElement('div'); 
-        commentWrapperParent.appendChild(commentWrapper);
+    }
     
-        let parentElem = findText(getElementByDomPathLimit(dompath), focusText);    
-        let commentStartIndex = parentElem.innerHTML.indexOf(focusText) + Math.min(baseoffset, extentoffset);
-        parentElem.innerHTML = parentElem.innerHTML.substring(0,commentStartIndex) + commentWrapperParent.innerHTML + parentElem.innerHTML.substring(commentStartIndex + text.length);
-    });
+    //commentWrapper.addEventListener("click", () => {console.log("hi")});
 }
-
-function printComments() {
+function establish_anchors() {
     let comments = localStorage.getItem('comments');
 	let pagelocation = window.location.toString().substring(window.location.toString().indexOf('//') + 2);
-	
-    if (comments == null) {comments = '[]';}
-    comments = JSON.parse(comments)[pagelocation];
-    for (i in comments) {
-		console.log(comments[i]);
-        comments[i].forEach(createCommentFromDetails);
-    }
+    if (comments != null) {comments = JSON.parse(comments)[pagelocation];}
+    if (comments == null) {comments = {};}
+    Object.entries(comments).forEach((x) => {
+        let [key, commentsArray] = x;  
+        establish_anchor(key, commentsArray);
+      });
 }
+
+/*
+anchor is a divpath /w text
+dict = {anchor => comments}
+for each path
+add event listener to path /w display_anchor (comments)
+
+*/

@@ -7,12 +7,17 @@ var newCommentText = '';
 
 function createComment() {
     //getNewCommentsText();
-    let wantedComment = captureSelection();
+    let [info, wantedComment] = captureSelection();
+    let [pagelocation, key] = info;
 	if (wantedComment.length == 0) { 
 		console.log("Can't comment on a comment!");
 		return;
 	}
-	createCommentFromDetails(wantedComment);
+    //you're supposed to add to the divpath technically
+
+	//createCommentFromDetails(wantedComment);
+    //display the new comment
+    display_anchor(pagelocation, key);
 	return;
 }
 
@@ -26,7 +31,7 @@ function captureSelection() {
 		}
 	}
 	let anchorElem = s.focusNode.parentElement;
-    if (anchorElem.tagName == 'MARK' && anchorElem.parentElement.tagName == "SPAN"){
+    if (anchorElem.tagName == 'MARK' && anchorElem.parentElement.tagName == "SPAN"){ //rewrite this to ignore our own markups
         anchorElem = anchorElem.parentElement.parentElement;
     }
     let old = localStorage.getItem('comments');
@@ -46,14 +51,17 @@ function captureSelection() {
 	if (!(pagelocation in old)) {
 		old[pagelocation] = {};
 	}
-    if (newcomment[0] in old[pagelocation]) {
-        old[pagelocation][newcomment[0]].push(newcomment);
+
+    let key = newcomment[0] + "__" + newcomment[1];
+    
+    if (key in old[pagelocation]) {
+        old[pagelocation][key].push(newcomment);
     } else {
-        old[pagelocation][newcomment[0]] = [newcomment];
+        old[pagelocation][key] = [newcomment];
     }
     localStorage.setItem('comments', JSON.stringify(old));
 
-    return newcomment;
+    return [[pagelocation, key], newcomment];
 }
 
 function getNewCommentText() {

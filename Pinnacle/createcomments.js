@@ -15,10 +15,39 @@ function createComment() {
 	}
     //you're supposed to add to the divpath technically
 
+    
+    saveRequest(pagelocation, wantedComment)
+    .then(data => {
+	    console.log(data.valueOf());
+	});
 	//createCommentFromDetails(wantedComment);
     //display the new comment
     display_anchor(pagelocation, key);
 	return;
+}
+
+async function saveRequest(pagelocation, wantedComment) {
+    let args = [pagelocation].concat(wantedComment);
+    let request = {
+	cache: 'no-cache',
+        method: 'POST',
+        headers: {
+	    'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            pageurl : pagelocation,
+            divpath : wantedComment[0],
+            commented_text : wantedComment[1],
+            comment_content : wantedComment[2],
+            focus_text : wantedComment[3],
+            base_offset : wantedComment[4],
+            extent_offset : wantedComment[5],
+        }),
+    };
+    console.log(args);
+    console.log(request);
+    let response = await fetch('https://pinnacle.grixisutils.site/createcomment.php', request);
+    return response.json();
 }
 
 function captureSelection() {

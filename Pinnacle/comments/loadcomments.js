@@ -16,7 +16,7 @@ function establish_anchor(key, commentsArray) {
     let templateComment = commentsArray[0];
 
     console.log(templateComment)
-    let divText = templateComment["anchorDivText"];
+    let anchorText = templateComment["anchorText"];
     let focusText = templateComment["anchorFocusText"];
     let [baseoffset, extentoffset] = templateComment["anchorOffsets"];
 
@@ -27,7 +27,7 @@ function establish_anchor(key, commentsArray) {
     commentWrapper.appendChild(commentTarget);
 
     commentTarget.classList.add('pinnacle-anchor-highlight');
-    commentTarget.textContent = focusText;
+    commentTarget.textContent = anchorText;
     //() => {display_anchor(key)}
     /* 
     We want the innerHTML to include the commentWrapper <span> && </span> tags.
@@ -37,9 +37,9 @@ function establish_anchor(key, commentsArray) {
     commentWrapperParent.appendChild(commentWrapper);
     //handle errors PLEASE
 
-    let parentElem = findText(document.body, focusText);
+    let parentElem = findText(document.body, anchorText);
     console.log(parentElem)
-    parentElem.innerHTML = parentElem.textContent.substring(0, baseoffset) + commentWrapperParent.innerHTML + parentElem.textContent.substring(extentoffset, divText.length);
+    parentElem.innerHTML = parentElem.textContent.substring(0, baseoffset) + commentWrapperParent.innerHTML + parentElem.textContent.substring(extentoffset, focusText.length);
     let array = parentElem.getElementsByClassName("pinnacle-anchor-highlight");
     for (i in array) {
         let div = array[i];
@@ -71,5 +71,3 @@ for each path
 add event listener to path /w display_anchor (comments)
 
 */
-
-insert_comments();

@@ -10,9 +10,10 @@ commentButton.addEventListener('click', async () => {
     chrome.storage.sync.set({
         'comment': commentText.value.trimEnd()
     });
+    console.log("set the comments")
     chrome.scripting.executeScript({
         target: { tabId: tab.id },
-        func: createComment,
+        files: ['/comments/createComment.js'],
     });
 });
 

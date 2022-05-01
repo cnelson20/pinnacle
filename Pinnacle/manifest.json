@@ -27,7 +27,7 @@
             "js": [
                 "/helpers/color-helpers.js",
                 "/comments/loadcomments.js",
-                "/comments/createcomments.js",
+                "/comments/createCommentHelpers.js",
                 "/sidebar/sidebar.js",
                 "content_script.js"
             ]

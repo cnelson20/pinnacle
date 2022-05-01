@@ -118,7 +118,7 @@ function captureSelection() {
     ];
     */
 
-    return chrome.storage.sync.get(['comment'], (result) => {
+    chrome.storage.sync.get(['comment'], (result) => {
         newCommentText = result.comment;
         let newcomment = {
             "anchorDomPath": getDomPath(anchorElem),
@@ -149,23 +149,42 @@ function captureSelection() {
         }
         localStorage.setItem('comments', JSON.stringify(old));
 
-        return [[pagelocation, key], newcomment];
+        useCommentDetails(pagelocation, key, newcomment);
     });
 }
 
-async function createComment() {
-    return captureSelection().then((data) => {
-        let [info, wantedComment] = data.valueOf()
-        let [pagelocation, key] = info;
-        if (wantedComment.length == 0) {
-            console.log("Can't comment on a comment!");
-            return;
-        }
-        //you're supposed to add to the divpath technically
-
-        //createCommentFromDetails(wantedComment);
-        //display the new comment
-        display_anchor(pagelocation, key);
+function useCommentDetails(pagelocation, key, wantedComment) {
+    if (wantedComment.length == 0) {
+        console.log("Can't comment on a comment!");
         return;
-    });
+    }
+    //you're supposed to add to the divpath technically
+    console.log(wantedComment);
+    let request = {
+        cache: 'no-cache',
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({  
+            pageurl : pagelocation, 
+            divpath : wantedComment.anchorDomPath,              
+            focus_text : wantedComment.anchorFocusText,
+            commented_text : wantedComment.anchorText,
+            comment_content : wantedComment.commentText,
+            base_offset : wantedComment.anchorOffsets[0],
+            extent_offset : wantedComment.anchorOffsets[1],
+        }),
+    };
+    let responsePromise = fetch('https://pinnacle.grixisutils.site/createcomment.php', request);
+        
+    //display the new comment
+    display_anchor(pagelocation, key);
+    return;
+}
+
+async function createComment() {
+    console.log("createComment()");
+
+    captureSelection();
 }

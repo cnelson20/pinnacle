@@ -27,7 +27,6 @@
             "js": [
                 "/helpers/color-helpers.js",
                 "/comments/loadcomments.js",
-                "/comments/createCommentHelpers.js",
                 "/sidebar/sidebar.js",
                 "content_script.js"
             ]
@@ -39,5 +38,8 @@
         "activeTab",
         "scripting",
         "tabs"
+    ],
+    "host_permissions": [
+        "*://*/*"
     ]
 }

@@ -37,9 +37,24 @@ function establish_anchor(key, commentsArray) {
     commentWrapperParent.appendChild(commentWrapper);
     //handle errors PLEASE
 
-    let parentElem = findText(document.body, anchorText);
+    let parentElem = findText(document.body, focusText);
     console.log(parentElem)
-    parentElem.innerHTML = parentElem.textContent.substring(0, baseoffset) + commentWrapperParent.innerHTML + parentElem.textContent.substring(extentoffset, focusText.length);
+    let focusTextBaseOffset = parentElem.innerHTML.indexOf(focusText, Math.min(baseoffset, extentoffset));
+    
+    /*console.log(parentElem.innerHTML.substring(0, focusTextBaseOffset));
+    console.log(focusText.substring(0, Math.min(baseoffset, extentoffset)));
+    console.log(commentWrapperParent.innerHTML);
+    console.log(focusText.substring(Math.max(baseoffset, extentoffset)));
+    console.log(parentElem.innerHTML.substring(focusTextBaseOffset + focusText.length));*/
+    
+    parentElem.innerHTML = 
+        parentElem.innerHTML.substring(0, focusTextBaseOffset) +
+        focusText.substring(0, Math.min(baseoffset, extentoffset)) +
+        commentWrapperParent.innerHTML + 
+        focusText.substring(Math.max(baseoffset, extentoffset)) + 
+        parentElem.innerHTML.substring(focusTextBaseOffset + focusText.length);
+
+    //parentElem.textContent.substring(0, baseoffset) + commentWrapperParent.innerHTML + parentElem.textContent.substring(extentoffset, focusText.length);
     let array = parentElem.getElementsByClassName("pinnacle-anchor-highlight");
     for (i in array) {
         let div = array[i];
@@ -51,16 +66,44 @@ function establish_anchor(key, commentsArray) {
     //commentWrapper.addEventListener("click", () => {console.log("hi")});
 }
 
-function insert_comments() {
-    console.log("is this running?")
-    let comments = localStorage.getItem('comments');
-    console.log(comments)
+async function insert_comments() {
+    console.log("is this running?");
     let pagelocation = window.location.toString().substring(window.location.toString().indexOf('//') + 2);
-    if (comments != null) { comments = JSON.parse(comments)[pagelocation]; }
-    if (comments == null) { comments = {}; }
-    Object.entries(comments).forEach((x) => {
-        let [key, commentsArray] = x;
-        establish_anchor(key, commentsArray);
+    let request = {
+        cache: 'no-cache',
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({  
+            pageurl : pagelocation, 
+        }),
+    };
+    let response = await fetch("https://pinnacle.grixisutils.site/get.php", request);
+    response.json().then(data => {
+        let comments = {};
+        for (i in data) {
+            let c = {
+                "anchorDomPath" : data[i]['divpath'],
+                "anchorFocusText" : data[i]['focus_text'],
+                "anchorText" : data[i]['commented_text'],
+                "anchorOffsets" : [parseInt(data[i]['base_offset']), parseInt(data[i]['extent_offset'])],
+                "commentText" : data[i]['comment_content'],
+                "timestamp" : parseInt(data[i]['timestamp'])
+            };
+            if (c["anchorDomPath"] in comments) {
+                comments[c["anchorDomPath"]].push(c);
+            } else {
+                comments[c["anchorDomPath"]] = [c];
+            }
+        };
+        console.log("Server Comments Array: ", comments);
+        /*if (comments != null) { comments = JSON.parse(comments)[pagelocation]; }
+        if (comments == null) { comments = {}; }*/
+        Object.entries(comments).forEach((x) => {
+            let [key, commentsArray] = x;
+            establish_anchor(key, commentsArray);
+        });
     });
 }
 

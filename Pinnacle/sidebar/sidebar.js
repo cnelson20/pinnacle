@@ -77,3 +77,5 @@ function display_anchor(commentsArray) {
     /* after clicking the highlighted anchor point, display all the comments in the sidebar */
     /*for each comment, generate an element with id pinnacle comment */
 }
+
+construct_sidebar();

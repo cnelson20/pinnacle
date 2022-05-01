@@ -11,6 +11,13 @@ function gen_static_elems() { //one day this will take user data as an argument,
 
     return staticDiv
 }
+
+function gen_changing_elems() {
+    let changingDiv = document.createElement("div")
+    changingDiv.id = "pinnacle-changing";
+    changingDiv.classList.add("pinnacle-changing-sidenav");
+    return changingDiv;
+}
 function construct_sidebar() {
     /*make the sidebar to load comments */
     const newDiv = document.createElement("div");
@@ -18,11 +25,7 @@ function construct_sidebar() {
     newDiv.id = "pinnacle-sidebar";
 
     newDiv.appendChild(gen_static_elems());
-
-    let changingDiv = document.createElement("div")
-    changingDiv.id = "pinnacle-changing";
-    changingDiv.classList.add("pinnacle-changing-sidenav");
-    newDiv.appendChild(changingDiv);
+    newDiv.appendChild(gen_changing_elems());
 
     document.body.parentElement.insertBefore(newDiv, document.body);
 }
@@ -56,7 +59,7 @@ navigation (exit button for now)
 function gen_comment_elem(comment) {
     const li = document.createElement("li");
     li.classList.add("pinnacle-comment");
-    li.textContent = comment[2];
+    li.textContent = comment["commentText"];
     return li;
 }
 function display_anchor(commentsArray) {

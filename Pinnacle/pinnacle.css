@@ -1,0 +1,51 @@
+.pinnacle-comment-wrapper {
+    position: relative;
+}
+.pinnacle-comment {
+    padding : 2px;
+    background-color: rgba(173, 216, 230, 0.5);
+    align-self: left;
+    text-align: left;
+    min-width: 200px;
+}
+.pinnacle-comment-hov:hover {
+    background-color: rgba(calc(255 - 173), calc(255 - 216), calc(255 - 230), 0.5);
+}
+
+.pinnacle-text-formatter {
+	text-decoration:none;
+	font-size:1rem;
+	font-family:Calibri;
+    color : black;
+}
+.pinnacle-text-formatter-hov:hover {
+    color : white;
+}
+
+.pinnacle-anchor-highlight {
+    background-color: rgba(247, 232, 0, 0.5);
+}
+
+/*GUI on each page */
+.pinnacle-sidenav {
+    height: 100%;
+    width: 0%;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    background-color: #fff;
+    overflow-x: hidden;
+    padding-top: 20px;
+    z-index: 2000;
+    color: black;
+  }
+.pinnacle-button {
+    border: 1px solid black;
+    background-color: grey;
+    padding-left: 1%;
+}
+.pinnacle-sidebar-list {
+    display: flex;
+    flex-direction: column;
+}

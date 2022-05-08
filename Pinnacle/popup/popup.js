@@ -5,13 +5,7 @@ const clearButton = document.getElementById('clearComments');
 
 const tabPromise = chrome.tabs.query({ active: true, currentWindow: true });
 
-(async () => {
-    let [tab] = await tabPromise;
-    chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        files: ['/comments/createCommentHelpers.js'],
-    });
-})();
+
 commentButton.addEventListener('click', async () => {
     let [tab] = await tabPromise;
     chrome.storage.sync.set({

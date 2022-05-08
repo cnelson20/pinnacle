@@ -121,7 +121,7 @@ function captureSelection() {
     chrome.storage.sync.get(['comment'], (result) => {
         newCommentText = result.comment;
         let newcomment = {
-            "anchorDomPath": getDomPath(anchorElem),
+            "anchorDomPath": getDomPath(anchorElem) + "__" + s.focusNode.data.substring(s.baseOffset, s.extentOffset),
             "anchorFocusText": s.focusNode.textContent,
             "anchorText": s.focusNode.data.substring(s.baseOffset, s.extentOffset),
             "anchorOffsets": [s.baseOffset, s.extentOffset],
@@ -140,14 +140,8 @@ function captureSelection() {
             old[pagelocation] = {};
         }
 
-        let key = newcomment["anchorDomPath"] + "__" + newcomment["anchorFocusText"];
+        let key = newcomment["anchorDomPath"];
 
-        if (key in old[pagelocation]) {
-            old[pagelocation][key].push(newcomment);
-        } else {
-            old[pagelocation][key] = [newcomment];
-        }
-        localStorage.setItem('comments', JSON.stringify(old));
 
         useCommentDetails(pagelocation, key, newcomment);
     });

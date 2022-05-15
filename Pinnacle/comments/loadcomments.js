@@ -15,7 +15,7 @@ function establish_anchor(key, commentsArray) {
     //uses commentsArray[0] to create anchor elements!
     let templateComment = commentsArray[0];
 
-    console.log(templateComment)
+    //console.log(templateComment)
     let anchorText = templateComment["anchorText"];
     let focusText = templateComment["anchorFocusText"];
     let [baseoffset, extentoffset] = templateComment["anchorOffsets"];
@@ -68,6 +68,11 @@ function establish_anchor(key, commentsArray) {
 
 async function insert_comments() {
     console.log("is this running?");
+    if ('pinnacle__loadedCommentsYet' in localStorage) {
+        return;
+    } else {
+        localStorage['pinnacle__loadedCommentsYet'] = true;
+    }
     let pagelocation = window.location.toString().substring(window.location.toString().indexOf('//') + 2);
     let request = {
         cache: 'no-cache',
@@ -82,7 +87,7 @@ async function insert_comments() {
     let response = await fetch("https://pinnacle.grixisutils.site/get.php", request);
     response.json().then(data => {
         let comments = {};
-		console.log(data);
+		//console.log(data);
         for (let i = 0; i < data.length; i++) {
             if (data[i]['pageurl'] == window.location.toString().substring(window.location.toString().indexOf('//') + 2)) {
 				let c = {
@@ -101,12 +106,32 @@ async function insert_comments() {
 			}
         };
         console.log("Server Comments Array: ", comments);
+        
+        chrome.storage.sync.get(null, (result) => {
+            //console.log(result);
+            //console.log(result['saved_comments']);
+            if (result.saved_comments != undefined) {
+                let chromeComments = result['saved_comments'];
+                for (let i = 0; i < chromeComments.length; i++) {
+                    if (chromeComments[i][0] != pagelocation) {
+                        continue;
+                    }
+                    if (!(chromeComments[i][1] in comments)) {
+                        comments[chromeComments[i][1]] = new Array();
+                    }
+                    console.log(chromeComments[i]);
+                    comments[chromeComments[i][1]].push(chromeComments[i][2]);
+                }
+            }
+
+            console.log(comments);
+            Object.entries(comments).forEach((x) => {
+                let [key, commentsArray] = x;
+                establish_anchor(key, commentsArray);
+            });
+        });
         /*if (comments != null) { comments = JSON.parse(comments)[pagelocation]; }
         if (comments == null) { comments = {}; }*/
-        Object.entries(comments).forEach((x) => {
-            let [key, commentsArray] = x;
-            establish_anchor(key, commentsArray);
-        });
     });
 }
 
@@ -117,3 +142,10 @@ for each path
 add event listener to path /w display_anchor (comments)
 
 */
+
+localStorage.removeItem('pinnacle__loadedCommentsYet');
+chrome.storage.sync.get(['autoLoad'], (result) => {
+    if (result.autoLoad) {
+        insert_comments();
+    }
+});

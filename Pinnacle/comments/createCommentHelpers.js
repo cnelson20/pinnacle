@@ -105,8 +105,6 @@ function captureSelection() {
     if (anchorElem.tagName == 'MARK' && anchorElem.parentElement.tagName == "SPAN") { //rewrite this to ignore our own markups
         anchorElem = anchorElem.parentElement.parentElement;
     }
-    let old = localStorage.getItem('comments');
-    if (old == null) { old = '{}'; }
 
     /*
     let newcomment = [
@@ -120,6 +118,7 @@ function captureSelection() {
 
     chrome.storage.sync.get(['comment'], (result) => {
         newCommentText = result.comment;
+        console.log(newCommentText);
         let newcomment = {
             "anchorDomPath": getDomPath(anchorElem) + "__" + s.focusNode.data.substring(s.baseOffset, s.extentOffset),
             "anchorFocusText": s.focusNode.textContent,
@@ -131,14 +130,9 @@ function captureSelection() {
         - anchor will be a struct
         - and there will be a lot more info for the comment
         */
-
-        old = JSON.parse(old);
+       
 
         let pagelocation = window.location.toString().substring(window.location.toString().indexOf('//') + 2);
-
-        if (!(pagelocation in old)) {
-            old[pagelocation] = {};
-        }
 
         let key = newcomment["anchorDomPath"];
 
@@ -152,33 +146,50 @@ function useCommentDetails(pagelocation, key, wantedComment) {
         console.log("Can't comment on a comment!");
         return;
     }
-    //you're supposed to add to the divpath technically
-    console.log(wantedComment);
-    let request = {
-        cache: 'no-cache',
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({  
-            pageurl : pagelocation, 
-            divpath : wantedComment.anchorDomPath,              
-            focus_text : wantedComment.anchorFocusText,
-            commented_text : wantedComment.anchorText,
-            comment_content : wantedComment.commentText,
-            base_offset : wantedComment.anchorOffsets[0],
-            extent_offset : wantedComment.anchorOffsets[1],
-        }),
-    };
-    let responsePromise = fetch('https://pinnacle.grixisutils.site/createcomment.php', request);
-        
+    
     //display the new comment
     display_anchor(pagelocation, key);
+
+    //you're supposed to add to the divpath technically
+    /*console.log(pagelocation);
+    console.log(key);*/
+    console.log(wantedComment);
+
+    chrome.storage.sync.get(['saveCommentsOnServer'], (result) => {
+        if (result.saveCommentsOnServer !== false) {
+            let request = {
+                cache: 'no-cache',
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({  
+                    pageurl : pagelocation, 
+                    divpath : wantedComment.anchorDomPath,              
+                    focus_text : wantedComment.anchorFocusText,
+                    commented_text : wantedComment.anchorText,
+                    comment_content : wantedComment.commentText,
+                    base_offset : wantedComment.anchorOffsets[0],
+                    extent_offset : wantedComment.anchorOffsets[1],
+                }),
+            };
+            let responsePromise = fetch('https://pinnacle.grixisutils.site/createcomment.php', request);
+        } else {
+            console.log('Querying chrome.storage so we can write to it ');
+            chrome.storage.sync.get(['saved_comments'], (result) => {
+                console.log('Writing comment to chrome.storage!');
+                let savedComments = (result.saved_comments !== undefined) ? result.saved_comments : [];
+                savedComments.push([pagelocation, key, wantedComment]);
+                chrome.storage.sync.set({'saved_comments' : savedComments});
+            });
+        }
+    });
+        
     return;
 }
 
 async function createComment() {
-    console.log("createComment()");
+    //console.log("createComment()");
 
     captureSelection();
 }

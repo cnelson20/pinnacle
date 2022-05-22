@@ -2,17 +2,25 @@
 <html>
     <head>
         <link rel="stylesheet" href="popup.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     </head>
-    <body style="background-color: blueviolet;">
-        <div class="button-padding">
-            <textarea id="commentText" placeholder="Your thoughts..." rows="5" cols="20"></textarea>
-            <button class="clickbutton" id="addCommentButton"> Add Comment </button>
+    <body style="width: 300px; background-color: rgb(54, 124, 222);;">
+        <div class="top-part">
+            <h3 style="color:white; padding-left: 5px;">Pinnacle</h3>
         </div>
-        <div class="button-padding">
-            <button class="clickbutton" id="viewCommentsButton"> Log saved comments </button>
-        </div>
-        <div class="button-padding">
-            <button class="clickbutton" id="clearComments"> Clear ALL local comments </button>
+        <div class="main-section" style="margin:0">
+            <center>
+                <div class="form-group">
+                    <textarea class="form-control" id="commentText" placeholder="Your thoughts..." rows="5" cols="100"></textarea>
+                </div>
+                <button class="clickbutton btn btn-info" id="addCommentButton"> Add Comment </button>
+                <div class="button-padding">
+                    <button class="clickbutton btn btn-info" id="viewCommentsButton"> Log saved comments </button>
+                </div>
+                <div class="button-padding">
+                    <button class="clickbutton btn btn-info" id="clearComments"> Clear ALL local comments </button>
+                </div>
+            </center>
         </div>
         <script type="application/javascript" src="popup.js"></script>
     </body>

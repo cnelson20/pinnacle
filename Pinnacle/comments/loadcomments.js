@@ -107,7 +107,7 @@ async function insert_comments() {
         };
         console.log("Server Comments Array: ", comments);
         
-        chrome.storage.sync.get(null, (result) => {
+        chrome.storage.local.get(['saved_comments'], (result) => {
             //console.log(result);
             //console.log(result['saved_comments']);
             if (result.saved_comments != undefined) {

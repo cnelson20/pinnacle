@@ -6,7 +6,7 @@ function findText(element, focusText) {
                 return r;
             }
         }
-        return element
+        return element;
     }
     return null;
 }
@@ -126,6 +126,7 @@ async function insert_comments() {
 
             console.log(comments);
             Object.entries(comments).forEach((x) => {
+				console.log(x);
                 let [key, commentsArray] = x;
                 establish_anchor(key, commentsArray);
             });

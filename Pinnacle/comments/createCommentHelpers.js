@@ -148,7 +148,7 @@ function useCommentDetails(pagelocation, key, wantedComment) {
     }
     
     //display the new comment
-    display_anchor([ wantedComment ]);
+    //display_anchor([ wantedComment ]);
 	establish_anchor(key, [ wantedComment ]);
 
     //you're supposed to add to the divpath technically
@@ -156,7 +156,7 @@ function useCommentDetails(pagelocation, key, wantedComment) {
     console.log(key);*/
     console.log(wantedComment);
 
-    chrome.storage.sync.get(['saveCommentsOnServer'], (result) => {
+    chrome.storage.sync.get(['saveCommentsOnServer', 'userDesiredName'], (result) => {
         if (result.saveCommentsOnServer !== false) {
             let request = {
                 cache: 'no-cache',
@@ -172,6 +172,7 @@ function useCommentDetails(pagelocation, key, wantedComment) {
                     comment_content : wantedComment.commentText,
                     base_offset : wantedComment.anchorOffsets[0],
                     extent_offset : wantedComment.anchorOffsets[1],
+					name : (result.userDesiredName != null ? result.userDesiredName : 'Anonymous'),
                 }),
             };
             let responsePromise = fetch('https://pinnacle.grixisutils.site/createcomment.php', request);

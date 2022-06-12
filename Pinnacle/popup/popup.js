@@ -24,7 +24,7 @@ clearComments.addEventListener('click', async () => {
         target: { tabId: tab.id },
         func: clearCommentsFunction,
     });
-    chrome.storage.sync.set({'saved_comments' : []});
+    chrome.storage.local.set({'saved_comments' : []});
 });
 
 function clearCommentsFunction() {

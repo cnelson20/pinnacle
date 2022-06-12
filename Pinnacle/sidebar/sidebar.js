@@ -4,6 +4,8 @@ function gen_static_elems() { //one day this will take user data as an argument,
 
     let newButton = document.createElement("button");
     newButton.textContent = "close";
+    newButton.classList.add("btn");
+    newButton.classList.add("btn-info");
     newButton.id = 'exit-sidebar';
     newButton.classList.add("pinnacle-button");
     newButton.addEventListener("click", empty_sidebar);
@@ -21,6 +23,7 @@ function gen_changing_elems() {
 function construct_sidebar() {
     /*make the sidebar to load comments */
     const newDiv = document.createElement("div");
+    newDiv.style.backgroundColor = "rgb(54, 124, 222)";
     newDiv.classList.add("pinnacle-sidenav");
     newDiv.id = "pinnacle-sidebar";
 

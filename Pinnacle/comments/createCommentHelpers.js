@@ -148,14 +148,15 @@ function useCommentDetails(pagelocation, key, wantedComment) {
     }
     
     //display the new comment
-    display_anchor(pagelocation, key);
+    //display_anchor([ wantedComment ]);
+	establish_anchor(key, [ wantedComment ]);
 
     //you're supposed to add to the divpath technically
     /*console.log(pagelocation);
     console.log(key);*/
     console.log(wantedComment);
 
-    chrome.storage.sync.get(['saveCommentsOnServer'], (result) => {
+    chrome.storage.sync.get(['saveCommentsOnServer', 'userDesiredName'], (result) => {
         if (result.saveCommentsOnServer !== false) {
             let request = {
                 cache: 'no-cache',
@@ -171,16 +172,17 @@ function useCommentDetails(pagelocation, key, wantedComment) {
                     comment_content : wantedComment.commentText,
                     base_offset : wantedComment.anchorOffsets[0],
                     extent_offset : wantedComment.anchorOffsets[1],
+					name : (result.userDesiredName != null ? result.userDesiredName : 'Anonymous'),
                 }),
             };
             let responsePromise = fetch('https://pinnacle.grixisutils.site/createcomment.php', request);
         } else {
             console.log('Querying chrome.storage so we can write to it ');
-            chrome.storage.sync.get(['saved_comments'], (result) => {
+            chrome.storage.local.get(['saved_comments'], (result) => {
                 console.log('Writing comment to chrome.storage!');
                 let savedComments = (result.saved_comments !== undefined) ? result.saved_comments : [];
                 savedComments.push([pagelocation, key, wantedComment]);
-                chrome.storage.sync.set({'saved_comments' : savedComments});
+                chrome.storage.local.set({'saved_comments' : savedComments});
             });
         }
     });

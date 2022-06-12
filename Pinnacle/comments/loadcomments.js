@@ -6,7 +6,7 @@ function findText(element, focusText) {
                 return r;
             }
         }
-        return element
+        return element;
     }
     return null;
 }
@@ -96,7 +96,7 @@ async function insert_comments() {
 					"anchorText" : data[i]['commented_text'],
 					"anchorOffsets" : [parseInt(data[i]['base_offset']), parseInt(data[i]['extent_offset'])],
 					"commentText" : data[i]['comment_content'],
-					"timestamp" : parseInt(data[i]['timestamp'])
+					"timestamp" : data[i]['timestamp']
 				};
 				if (c["anchorDomPath"] in comments) {
 					comments[c["anchorDomPath"]].push(c);
@@ -126,6 +126,7 @@ async function insert_comments() {
 
             console.log(comments);
             Object.entries(comments).forEach((x) => {
+				console.log(x);
                 let [key, commentsArray] = x;
                 establish_anchor(key, commentsArray);
             });

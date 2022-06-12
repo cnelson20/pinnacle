@@ -61,8 +61,11 @@ navigation (exit button for now)
 */
 function gen_comment_elem(comment) {
     const li = document.createElement("li");
+    const tpDate = new Date(comment["timestamp"]);
     li.classList.add("pinnacle-comment");
-    li.textContent = comment["commentText"];
+
+    const dateString = tpDate.getMonth() + "/" + tpDate.getDate() + "/" + tpDate.getFullYear() + " " + tpDate.getHours() + ":" + tpDate.getMinutes();
+    li.textContent = dateString + comment["name"] + ":" + comment["commentText"];
     return li;
 }
 function display_anchor(commentsArray) {

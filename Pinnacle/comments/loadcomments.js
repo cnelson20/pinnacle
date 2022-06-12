@@ -15,6 +15,7 @@ function establish_anchor(key, commentsArray) {
     //uses commentsArray[0] to create anchor elements!
     let templateComment = commentsArray[0];
 
+    //console.log(commentsArray);
     //console.log(templateComment)
     let anchorText = templateComment["anchorText"];
     let focusText = templateComment["anchorFocusText"];
@@ -38,34 +39,32 @@ function establish_anchor(key, commentsArray) {
     //handle errors PLEASE
 
     let parentElem = findText(document.body, focusText);
-    console.log(parentElem);
-    console.log(focusText);
+    //console.log(parentElem);
+    //console.log(focusText);
     if (parentElem != null) {
         let focusTextBaseOffset = parentElem.innerHTML.indexOf(focusText, Math.min(baseoffset, extentoffset));
         
-        /*console.log(parentElem.innerHTML.substring(0, focusTextBaseOffset));
-        console.log(focusText.substring(0, Math.min(baseoffset, extentoffset)));
-        console.log(commentWrapperParent.innerHTML);
-        console.log(focusText.substring(Math.max(baseoffset, extentoffset)));
-        console.log(parentElem.innerHTML.substring(focusTextBaseOffset + focusText.length));*/
-        
-        parentElem.innerHTML = 
-            parentElem.innerHTML.substring(0, focusTextBaseOffset) +
-            focusText.substring(0, Math.min(baseoffset, extentoffset)) +
-            commentWrapperParent.innerHTML + 
-            focusText.substring(Math.max(baseoffset, extentoffset)) + 
-            parentElem.innerHTML.substring(focusTextBaseOffset + focusText.length);
+        const firsthalf =  "<span>" + 
+        parentElem.innerHTML.substring(0, focusTextBaseOffset) +
+        focusText.substring(0, Math.min(baseoffset, extentoffset)) + "</span>";
+        const secondhalf = "<span>" + focusText.substring(Math.max(baseoffset, extentoffset)) + 
+        parentElem.innerHTML.substring(focusTextBaseOffset + focusText.length) + "</span>";
 
-        //parentElem.textContent.substring(0, baseoffset) + commentWrapperParent.innerHTML + parentElem.textContent.substring(extentoffset, focusText.length);
+        parentElem.innerHTML = firsthalf;
+        parentElem.appendChild(commentWrapper);
+        parentElem.innerHTML += secondhalf;
+
         let array = parentElem.getElementsByClassName("pinnacle-anchor-highlight");
         for (i in array) {
             let div = array[i];
-            if (div.onclick == null) {
+            if (typeof(div) == 'object' && div.onclick == null && true) {  
+                //console.log(parentElem.innerHTML);
+                //console.log(div);
+                //console.log(div.innerHTML);
                 div.onclick = () => { display_anchor(commentsArray) };
             }
         }
     }
-    //commentWrapper.addEventListener("click", () => {console.log("hi")});
 }
 
 async function insert_comments() {
@@ -127,15 +126,13 @@ async function insert_comments() {
                 }
             }
 
-            console.log(comments);
+            //console.log(comments);
             Object.entries(comments).forEach((x) => {
-				console.log(x);
+				//console.log(x);
                 let [key, commentsArray] = x;
                 establish_anchor(key, commentsArray);
             });
         });
-        /*if (comments != null) { comments = JSON.parse(comments)[pagelocation]; }
-        if (comments == null) { comments = {}; }*/
     });
 }
 

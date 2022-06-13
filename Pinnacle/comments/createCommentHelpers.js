@@ -5,116 +5,60 @@
 
 var newCommentText = '';
 
-function getSpecificDivChildren(element, divtype) {
-    let possList = element.querySelectorAll(divtype);
-    let yesList = [];
-    for (let i = 0; i < possList.length; i++) {
-        if (possList[i].parentElement === element) {
-            yesList.push(possList[i]);
-        }
-    }
-    return yesList;
-}
-
-/*
-    Given a DOM path for an HTML object, return the lowest object in the path that is a unique div.
-*/
-function getElementByDomPathLimit(string) {
-    let split = string.split(" > ");
-    let elem = document;
-    for (let i = 0; i < split.length; i++) {
-        if (split[i].includes(':')) {
-            if (split[i].includes('nth-of-type(')) {
-                let tagname = split[i].substring(0, split[i].indexOf(':'));
-                let righttagchildren = getSpecificDivChildren(elem, tagname);
-                let targetIndex = parseInt(split[i].substring(split[i].indexOf('nth-of-type(') + 'nth-of-type('.length));
-
-                /*console.log(elem);
-                console.log(split[i]);
-                console.log(tagname);
-                console.log(righttagchildren);
-                console.log(righttagchildren[targetIndex]);  
-                */
-                elem = righttagchildren[targetIndex - 1];
-            } else {
-                return elem;
-            }
-        } else {
-            elem = elem.getElementsByTagName(split[i])[0];
-        }
-    }
-    return elem;
-}
-
-/* 
-    Given div, return string of div path 
-*/
-function getDomPath(el) {
-    if (!el) {
-        return;
-    }
-    var stack = [];
-    var isShadow = false;
-    while (el.parentNode != null) {
-        // console.log(el.nodeName);
-        var sibCount = 0;
-        var sibIndex = 0;
-        // get sibling indexes
-        for (var i = 0; i < el.parentNode.childNodes.length; i++) {
-            var sib = el.parentNode.childNodes[i];
-            if (sib.nodeName == el.nodeName) {
-                if (sib === el) {
-                    sibIndex = sibCount;
-                }
-                sibCount++;
+function findInversePath(node, parent) { // treating parent as the root node, find the path to node.
+    curNode = node
+    stack = []
+    while (!curNode.isSameNode(parent)) {
+        curParent = curNode.parentNode;
+        curSiblings = curParent.childNodes;
+        sibIndex = 0;
+        for (let i = 0; i < curSiblings.length; i++) {
+            if (curSiblings[i].isSameNode(curNode)) {
+                sibIndex = i;
             }
         }
-        // if ( el.hasAttribute('id') && el.id != '' ) { no id shortcuts, ids are not unique in shadowDom
-        //   stack.unshift(el.nodeName.toLowerCase() + '#' + el.id);
-        // } else
-        var nodeName = el.nodeName.toLowerCase();
-        if (isShadow) {
-            nodeName += "::shadow";
-            isShadow = false;
-        }
-        if (sibCount > 1) {
-            stack.unshift(nodeName + ':nth-of-type(' + (sibIndex + 1) + ')');
-        } else {
-            stack.unshift(nodeName);
-        }
-        el = el.parentNode;
-        if (el.nodeType === 11) { // for shadow dom, we
-            isShadow = true;
-            el = el.host;
-        }
+        stack.unshift(curNode.nodeName + ':nth-of-type(' + (sibIndex + 1) + ')');
     }
-    stack.splice(0, 1); // removes the html element
     return stack.join(' > ');
+}
+
+function uniqueInversePaths(anchor, focus) {
+    function findCommonParent(node1, node2) {
+        // this is so inefficient, lmao. but it looks ok
+        testParent = node1.parentNode;
+        while (!testParent.contains(node2)) {
+            testParent = testParent.parentNode;
+        }
+        return testParent;
+    }
+    function isUnique(node) {
+        curScope = node.parentNode;
+        safeScope = node; //contains node. Should be the only node that contains node.
+        rootNode = node.getRootNode();
+        while (!curScope.isSameNode(rootNode)) {
+            childNodes = curScope.childNodes();
+            for (let i = 0; i < childNodes.length; i++) {
+                if (childNodes[i].isSameNode(safeScope) && childNodes[i].contains(node)) {
+                    return false;
+                }
+            }
+            curScope = curScope.parentNode;
+            safeScope = safeScope.parentNode;
+        }
+        return true;
+    }
+    
+    parent = findCommonParent(focus, anchor);
+    while (!isUnique(parent)) {
+        parent = parent.parentNode;
+    }
+    return [findInversePath(anchor, parent), findInversePath(focus, parent)]
 }
 
 function captureSelection() {
     let s = document.getSelection();
-    for (let i = 0; i < s.focusNode.parentElement.classList.length; i++) {
-        //console.log(s.focusNode.parentElement.classList[i].substring(0,'pinnacle-'.length));
-        let name = s.focusNode.parentElement.classList[i];
-        if (name.substring(0, 'pinnacle-'.length) == 'pinnacle-' && name != 'pinnacle-anchor-highlight') {
-            return [];
-        }
-    }
-    let anchorElem = s.focusNode.parentElement;
-    if (anchorElem.tagName == 'MARK' && anchorElem.parentElement.tagName == "SPAN") { //rewrite this to ignore our own markups
-        anchorElem = anchorElem.parentElement.parentElement;
-    }
+    [anchorInversePath, focusInversePath] = uniqueInversePaths(s.anchorNode, s.focusNode);
 
-    /*
-    let newcomment = [
-        getDomPath(anchorElem),
-        s.focusNode.data.substring(s.baseOffset, s.extentOffset),
-        newCommentText, s.focusNode.textContent,
-        s.baseOffset, s.extentOffset,
-        getInverseBackgroundColor(anchorElem)
-    ];
-    */
 
     chrome.storage.sync.get(['comment'], (result) => {
         newCommentText = result.comment;

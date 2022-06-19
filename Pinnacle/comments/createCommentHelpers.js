@@ -1,44 +1,79 @@
 function numMatches(text, regex) {
     return [...text.matchAll(new RegExp(`(?=${regex})`, "gm"))].length;
 }
+function autoLength(node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+        return node.textContent.length
+    }
+    else {
+        return node.childNodes.length
+    }
+}
     
 function captureSelection() {
     function normalizedRange(selection) {
         range = selection.getRangeAt(0).cloneRange()
-        if (selection.anchorNode.compareDocumentPosition(selection.focusNode) === Node.DOCUMENT_POSITION_PRECEDING) {
+        if (selection.anchorNode.compareDocumentPosition(selection.focusNode) !== Node.DOCUMENT_POSITION_PRECEDING) {
             return range;
         }
         range.setStart(selection.focusNode, selection.focusOffset);
         range.setEnd(selection.anchorNode, selection.anchorOffset);
         return range
     }
+    function expand(curScope) {
+        start = curScope.startContainer;
+        end = curScope.endContainer;
+        if (start.nodeType === Node.TEXT_NODE && curScope.startOffset - 5 > 0) {
+            curScope.setStart(start, curScope.startOffset - 5);
+        }
+        else {
+            if (start.previousSibling == undefined || null) {
+                curScope.setStartBefore(start.parentNode);
+            }
+            else {
+                curScope.setStartBefore(start.previousSibling);
+            }
+            while (start.startContainer.nodeType !== Node.TEXT_NODE) {
+                start = curScope.startContainer;
+                if (start.previousSibling == undefined || null) {
+                curScope.setStartBefore(start.parentNode);
+                }
+                else {
+                    curScope.setStartBefore(start.previousSibling);
+                }
+            }
+        }
+        console.log(end.textContent);
+        if (end.nodeType === Node.TEXT_NODE && curScope.endOffset + 5 < end.textContent.length) {
+            curScope.setEnd(end, curScope.endOffset + 5);
+        }
+        else {
+            if (end.nextSibling == undefined || null) {
+                curScope.setEndAfter(end.parentNode);
+            }
+            else {
+                curScope.setEndAfter(end.parentNode);
+            }
+            while (end.nodeType !== Node.TEXT_NODE) {
+                end = curScope.endContainer;
+                if (end.nextSibling == undefined || null) {
+                    curScope.setEndAfter(end.parentNode);
+                }
+                else {
+                    curScope.setEndAfter(end.nextSibling);
+                }
+            }
+        }
+    }
     function findUniqueContext(selection) {
         /* return either the range or a node so that their text context 
         occurs exactly once in the document */
 
         curScope = normalizedRange(selection);
-
+        expand(curScope);
+        console.log(curScope)
         while (numMatches(document.body.textContent, curScope.toString()) != 1) {
-            start = curScope.startContainer;
-            end = curScope.endContainer;
-            if (start.nodeType === Node.TEXT_NODE && curScope.startOffset - 5 > 0) {
-                curScope.setStart(start, curScope.startOffset - 5);
-            }
-            else if (start.previousSibling == undefined || null) {
-                curScope.setStartAfter(start.parentNode);
-            }
-            else {
-                curScope.setStartBefore(start);
-            }
-            if (end.nodeType === Node.TEXT_NODE && curScope.endOffset + 5 < end.textContent.length) {
-                curScope.setEnd(end, curScope.endOffset + 5);
-            }
-            else if (end.nextSibling == undefined || null) {
-                curScope.setEndBefore(end.parentNode);
-            }
-            else {
-                curScope.setEndAfter(end.parentNode);
-            }
+            expand(curScope)
         }
         return curScope;
     }
@@ -72,8 +107,9 @@ function captureSelection() {
     let s = document.getSelection();
     uniqueContext = findUniqueContext(s);
     occurenceIndex = findOccurenceIndex(uniqueContext, s);
-    console.log(uniqueContext.toString())
-    console.log(occurenceIndex)
+
+    console.log(uniqueContext);
+    console.log(occurenceIndex);
    
     // you know what's funny is some browsers support multiple selection ranges, lmao. Let's pretend that that's not a thing :)
     // also let's limit comment length
@@ -134,8 +170,15 @@ function useCommentDetails(pagelocation, key, wantedComment) {
             chrome.storage.local.get(['saved_comments'], (result) => {
                 console.log('Writing comment to chrome.storage!');
                 let savedComments = (result.saved_comments !== undefined) ? JSON.parse(result.saved_comments) : {};
+                console.log(savedComments)
                 let pageComments = (pagelocation in savedComments) ? savedComments[pagelocation] : {};
-                pageComments[key] = wantedComment;
+                if (key in pageComments) {
+                    console.log("in!")
+                    pageComments[key].push(wantedComment);
+                }
+                else {
+                    pageComments[key] = [wantedComment];
+                }
                 savedComments[pagelocation] = pageComments;
                 chrome.storage.local.set({ 'saved_comments': JSON.stringify(savedComments) });
             });

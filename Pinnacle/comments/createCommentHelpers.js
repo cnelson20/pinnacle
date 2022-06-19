@@ -21,6 +21,7 @@ function captureSelection() {
         return range
     }
     function expand(curScope) {
+        // rewrite
         start = curScope.startContainer;
         end = curScope.endContainer;
         if (start.nodeType === Node.TEXT_NODE && curScope.startOffset - 5 > 0) {
@@ -43,7 +44,6 @@ function captureSelection() {
                 }
             }
         }
-        console.log(end.textContent);
         if (end.nodeType === Node.TEXT_NODE && curScope.endOffset + 5 < end.textContent.length) {
             curScope.setEnd(end, curScope.endOffset + 5);
         }
@@ -118,7 +118,7 @@ function captureSelection() {
         newCommentText = result.comment;
         let newcomment = {
             "occurenceIndex": occurenceIndex,
-            "selectedText": s.toString(),
+            "selectedText": normalizedRange(s).toString(),
             "contextText": uniqueContext.toString(),
             "commentText": newCommentText
         };

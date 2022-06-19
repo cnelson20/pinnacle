@@ -31,7 +31,6 @@ function findRange(contextText, selectedText, occurenceIndex) {
         newText = [];
         console.log("start", start)
         console.log("end", end)
-        console.log(curTextNodes)
 
         for (let i = 0; i < curTextNodes.length; i++) {
             itemLength = curTextNodes[i].textContent.length
@@ -119,33 +118,63 @@ function fillRange(range, onClick) {
         return;
     }
 
-    fillNode(start, range.startOffset, autoLength(start), onClick);
-    fillNode(end, 0, range.endOffset, onClick);
+    textStart = range.startContainer;
+    textEnd = range.endContainer;
+    prevEndOffset = range.endOffset;
+    prevStartOffset = range.startOffset;
 
     start = range.startContainer;
     end = range.endContainer;
-    while (!(start.isSameNode(range.commonAncestorContainer))) {
+    toFill = [];
+
+    while (!range.commonAncestorContainer.isEqualNode(range.startContainer.parentElement)) {
         start = range.startContainer;
         if (start.nextSibling === null) {
-            range.setStartAfter(start.parentNode);
+            range.setStart(start.parentNode, 0);
+
         }
         else {
-            range.setStartAfter(start.nextSibling);
+            range.setStart(start.nextSibling, 0);
+
+            toFill.push(range.startContainer);
         }
+        // toFill.push(range.startContainer);
         // fillAllNodesBelow(range.startContainer, onClick);
         start = range.startContainer;
     }
-    while (!(end.isSameNode(range.commonAncestorContainer))) {
+    console.log(range.com)
+    while (!range.commonAncestorContainer.isEqualNode(range.endContainer.parentNode)) { 
         end = range.endContainer;
         if (end.previousSibling === null) {
-            range.setEndBefore(end.parentNode);
+            range.setEnd(end.parentNode, 0);
         }
         else {
-            range.setEndBefore(end.previousSibling);
+            // works by coincidence, I have no idea why
+            range.setEnd(end.previousSibling, 0);
+            console.log(range)
+            toFill.push(range.endContainer);
         }
         // fillAllNodesBelow(range.endContainer, onClick);
         end = range.endContainer;
     }
+
+    start = range.startContainer;
+    end = range.endContainer;
+
+    while (!start.nextSibling.isEqualNode(end)) {
+        start = range.startContainer;
+        end = range.endContainer;
+        range.setStart(range.startContainer.nextSibling, 0);
+        toFill.push(range.startContainer)
+    }
+    fillNode(textStart, prevStartOffset, autoLength(textStart), onClick);
+    fillNode(textEnd, 0, prevEndOffset, onClick);
+
+    for (let i = 0; i < toFill.length; i++) {
+        fillAllNodesBelow(toFill[i], onClick);
+    }
+    console.log(range)
+    console.log(toFill)
 }
 function establish_anchor(key, comments) {
     templateComment = comments[0]

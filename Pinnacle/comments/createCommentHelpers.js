@@ -24,44 +24,34 @@ function captureSelection() {
         // rewrite
         start = curScope.startContainer;
         end = curScope.endContainer;
-        if (start.nodeType === Node.TEXT_NODE && curScope.startOffset - 5 > 0) {
-            curScope.setStart(start, curScope.startOffset - 5);
+        if (start.nodeType === Node.TEXT_NODE && curScope.startOffset - 2 > 0) {
+            curScope.setStart(start, curScope.startOffset - 2);
         }
         else {
-            if (start.previousSibling == undefined || null) {
-                curScope.setStartBefore(start.parentNode);
-            }
-            else {
-                curScope.setStartBefore(start.previousSibling);
-            }
-            while (start.startContainer.nodeType !== Node.TEXT_NODE) {
-                start = curScope.startContainer;
-                if (start.previousSibling == undefined || null) {
-                curScope.setStartBefore(start.parentNode);
+            console.log("wsg")
+            console.log(start)
+            while (!(start.nodeType === Node.TEXT_NODE && curScope.startOffset - 2 > 0)) {
+                if (start.previousSibling === undefined) {
+                    curScope.setStartBefore(start.parentNode);
                 }
                 else {
-                    curScope.setStartBefore(start.previousSibling);
+                    curScope.setStartBefore(start.previousSibling)
                 }
+                start = curScope.startContainer;
             }
         }
-        if (end.nodeType === Node.TEXT_NODE && curScope.endOffset + 5 < end.textContent.length) {
-            curScope.setEnd(end, curScope.endOffset + 5);
+        if (end.nodeType === Node.TEXT_NODE && curScope.endOffset + 2 < autoLength(end)) {
+            curScope.setEnd(end, curScope.endOffset + 2);
         }
         else {
-            if (end.nextSibling == undefined || null) {
-                curScope.setEndAfter(end.parentNode);
-            }
-            else {
-                curScope.setEndAfter(end.parentNode);
-            }
-            while (end.nodeType !== Node.TEXT_NODE) {
-                end = curScope.endContainer;
-                if (end.nextSibling == undefined || null) {
+            while (!(end.nodeType === Node.TEXT_NODE && curScope.endOffset + 2 < autoLength(end))) {
+                if (end.nextSibling === undefined) {
                     curScope.setEndAfter(end.parentNode);
                 }
                 else {
-                    curScope.setEndAfter(end.nextSibling);
+                    curScope.setEndBefore(end.nextSibling)
                 }
+                end = curScope.endContainer;
             }
         }
     }
@@ -72,9 +62,10 @@ function captureSelection() {
         curScope = normalizedRange(selection);
         expand(curScope);
         console.log(curScope)
-        while (numMatches(document.body.textContent, curScope.toString()) != 1) {
+        while (numMatches(document.body.textContent, curScope.toString()) > 1) {
             expand(curScope)
         }
+        console.log("crashed?")
         return curScope;
     }
 

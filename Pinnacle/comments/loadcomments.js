@@ -29,8 +29,6 @@ function findRange(contextText, selectedText, occurenceIndex) {
     }
     function collapseText(range, start, end, curTextNodes) {
         newText = [];
-        console.log("start", start)
-        console.log("end", end)
 
         for (let i = 0; i < curTextNodes.length; i++) {
             itemLength = curTextNodes[i].textContent.length
@@ -48,10 +46,6 @@ function findRange(contextText, selectedText, occurenceIndex) {
             }
             start -= itemLength;
         }
-        
-        console.log("start", start)
-        console.log("end", end)
-        console.log(newText)
 
         range.setStart(newText[0], start);
         range.setEnd(newText[newText.length - 1], end)
@@ -61,7 +55,7 @@ function findRange(contextText, selectedText, occurenceIndex) {
 
     curScope = document.body;
 
-    if (numMatches(curScope.textContent, contextText) != 1) {
+    if (numMatches(curScope.textContent, contextText) > 1) {
         return false;
     }
     
@@ -70,7 +64,6 @@ function findRange(contextText, selectedText, occurenceIndex) {
     }
 
     curTextNodes = allText(curScope);
-    console.log(curTextNodes)
     newText = [];
 
     range = new Range();
@@ -87,7 +80,6 @@ function findRange(contextText, selectedText, occurenceIndex) {
     // newOffset needs to account for the position of 
     newOffset = offset + nthIndex(range.toString(), selectedText, occurenceIndex + 1);
     collapseText(range, newOffset, selectedText.length, curTextNodes);
-
 
     return range;
 }
@@ -110,6 +102,7 @@ function fillRange(range, onClick) {
             // onclick stuff happens here
         }
     }
+
     start = range.startContainer;
     end = range.endContainer;
     
@@ -131,7 +124,6 @@ function fillRange(range, onClick) {
         start = range.startContainer;
         if (start.nextSibling === null) {
             range.setStart(start.parentNode, 0);
-
         }
         else {
             range.setStart(start.nextSibling, 0);
@@ -142,7 +134,7 @@ function fillRange(range, onClick) {
         // fillAllNodesBelow(range.startContainer, onClick);
         start = range.startContainer;
     }
-    console.log(range.com)
+
     while (!range.commonAncestorContainer.isEqualNode(range.endContainer.parentNode)) { 
         end = range.endContainer;
         if (end.previousSibling === null) {
@@ -151,7 +143,6 @@ function fillRange(range, onClick) {
         else {
             // works by coincidence, I have no idea why
             range.setEnd(end.previousSibling, 0);
-            console.log(range)
             toFill.push(range.endContainer);
         }
         // fillAllNodesBelow(range.endContainer, onClick);
@@ -162,25 +153,27 @@ function fillRange(range, onClick) {
     end = range.endContainer;
 
     while (!start.nextSibling.isEqualNode(end)) {
+        range.setStart(start.nextSibling, 0);
+        // if (!range.st.isEqualNode(end))
+        toFill.push(range.startContainer)
         start = range.startContainer;
         end = range.endContainer;
-        range.setStart(range.startContainer.nextSibling, 0);
-        toFill.push(range.startContainer)
     }
+
     fillNode(textStart, prevStartOffset, autoLength(textStart), onClick);
     fillNode(textEnd, 0, prevEndOffset, onClick);
 
     for (let i = 0; i < toFill.length; i++) {
         fillAllNodesBelow(toFill[i], onClick);
     }
-    console.log(range)
-    console.log(toFill)
 }
 function establish_anchor(key, comments) {
     templateComment = comments[0]
     for (let i = 0; i < comments.length; i++) {
         range = findRange(key, comments[i]["selectedText"], comments[i]["occurenceIndex"]);
-        fillRange(range, null);
+        if (range !== false) {
+            fillRange(range, null);
+        }
     }
 }
 
@@ -227,9 +220,6 @@ async function insert_comments() {
         console.log("Server Comments Array: ", comments);
         
         chrome.storage.local.get(['saved_comments'], (result) => {
-            //console.log(result);
-            //console.log(result['saved_comments']);
-            console.log("hiiii")
             if (result['saved_comments'] != undefined) {
                 let chromeComments = result['saved_comments'];
                 for (let i = 0; i < chromeComments.length; i++) {
@@ -244,9 +234,7 @@ async function insert_comments() {
                 }
             }
 
-            console.log(result.saved_comments);
             Object.entries(JSON.parse(result.saved_comments)[pagelocation]).forEach((x) => {
-				console.log(x);
                 let [key, commentsArray] = x;
                 establish_anchor(key, commentsArray);
             });

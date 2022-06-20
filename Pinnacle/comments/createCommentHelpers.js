@@ -21,15 +21,12 @@ function captureSelection() {
         return range
     }
     function expand(curScope) {
-        // rewrite
         start = curScope.startContainer;
         end = curScope.endContainer;
         if (start.nodeType === Node.TEXT_NODE && curScope.startOffset - 2 > 0) {
             curScope.setStart(start, curScope.startOffset - 2);
         }
         else {
-            console.log("wsg")
-            console.log(start)
             while (!(start.nodeType === Node.TEXT_NODE && curScope.startOffset - 2 > 0)) {
                 if (start.previousSibling === undefined) {
                     curScope.setStartBefore(start.parentNode);

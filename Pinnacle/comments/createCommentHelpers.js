@@ -32,7 +32,7 @@ function captureSelection() {
                     curScope.setStartBefore(start.parentNode);
                 }
                 else {
-                    curScope.setStartBefore(start.previousSibling)
+                    curScope.setStartAfter(start.previousSibling)
                 }
                 start = curScope.startContainer;
             }
@@ -53,13 +53,11 @@ function captureSelection() {
         }
     }
     function findUniqueContext(selection) {
-        /* return either the range or a node so that their text context 
-        occurs exactly once in the document */
+        /* return an expanded range from selection */
 
         curScope = normalizedRange(selection);
         expand(curScope);
-        console.log(curScope)
-        while (numMatches(document.body.textContent, curScope.toString()) > 1) {
+        while (numMatches(document.body.innerText, curScope.toString()) > 1) {
             expand(curScope)
         }
         console.log("crashed?")

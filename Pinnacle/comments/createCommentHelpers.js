@@ -122,6 +122,30 @@ function captureSelection() {
     });
 }
 
+function sendNewStyleComment(comment) {
+    chrome.storage.sync.get(['saveCommentsOnServer', 'userDesiredName'], (result) => {
+        if (result.saveCommentsOnServer) {
+            let pagelocation = window.location.toString().substring(window.location.toString().indexOf('//') + 2);
+            let request = {
+                cache: 'no-cache',
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({  
+                    "pageurl" : pagelocation, 
+                    "occurenceIndex" : comment.occurenceIndex,
+                    "selectedText" : comment.selectedText,
+                    "contextText" : comment.contextText,
+                    "commentText" : comment.commentText,
+                    "name" : result.userDesiredName,
+                }),
+            };
+            fetch("https://pinnacle.grixisutils.site/konst_create.php", request);
+        }
+    });
+}
+
 function useCommentDetails(pagelocation, key, wantedComment) {
     if (wantedComment.length == 0) {
         console.log("Can't comment on a comment!");

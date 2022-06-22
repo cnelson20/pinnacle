@@ -179,6 +179,22 @@ function establish_anchor(key, comments, id) {
     }
 }
 
+async function loadNewStyleCommentsFromServer() {
+    let pagelocation = window.location.toString().substring(window.location.toString().indexOf('//') + 2);
+    let request = {
+        cache: 'no-cache',
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({  
+            pageurl : pagelocation, 
+        }),
+    };
+    let response = await fetch("https://pinnacle.grixisutils.site/konst_get.php");
+    return await response.json();
+}
+
 async function insert_comments() {
     console.log("is this running?");
     if ('pinnacle__loadedCommentsYet' in localStorage) {

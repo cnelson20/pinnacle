@@ -1,4 +1,7 @@
 function numMatches(text, regex) {
+    // stack overflow God bless
+    // https://stackoverflow.com/questions/3446170/escape-string-for-use-in-javascript-regex
+    regex = regex.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     return [...text.matchAll(new RegExp(`(?=${regex})`, "gm"))].length;
 }
 function autoLength(node) {
@@ -20,49 +23,50 @@ function captureSelection() {
         range.setEnd(selection.anchorNode, selection.anchorOffset);
         return range
     }
-    function expand(curScope) {
-        start = curScope.startContainer;
-        end = curScope.endContainer;
-        if (start.nodeType === Node.TEXT_NODE && curScope.startOffset - 2 > 0) {
-            curScope.setStart(start, curScope.startOffset - 2);
-        }
-        else {
-            while (!(start.nodeType === Node.TEXT_NODE && curScope.startOffset - 2 > 0)) {
-                if (start.previousSibling === undefined) {
-                    curScope.setStartBefore(start.parentNode);
-                }
-                else {
-                    curScope.setStartBefore(start.previousSibling)
-                }
-                start = curScope.startContainer;
-            }
-        }
-        if (end.nodeType === Node.TEXT_NODE && curScope.endOffset + 2 < autoLength(end)) {
-            curScope.setEnd(end, curScope.endOffset + 2);
-        }
-        else {
-            while (!(end.nodeType === Node.TEXT_NODE && curScope.endOffset + 2 < autoLength(end))) {
-                if (end.nextSibling === undefined) {
-                    curScope.setEndAfter(end.parentNode);
-                }
-                else {
-                    curScope.setEndBefore(end.nextSibling)
-                }
-                end = curScope.endContainer;
-            }
-        }
-    }
     function findUniqueContext(selection) {
-        /* return either the range or a node so that their text context 
-        occurs exactly once in the document */
+        /* return an expanded range from selection */
+
+        function expand(startIndex, endIndex, startOffset, endOffset) {
+            // curText is read only this time :)
+            // moving up in this world
+            while (!(startOffset - 1 > 0)) {
+                startIndex -= 1;
+                startOffset = autoLength(curText[startIndex])
+            }
+            startOffset -= 1;
+
+            while (!(endOffset + 1 < autoLength(curText[endIndex]))) {
+                endIndex += 1;
+                endOffset = 0;
+            }
+            endOffset += 1;
+
+            startSnippet = curText[startIndex].toString().slice(startOffset, autoLength(curText[startIndex]));
+            midSnippet = curText.slice(startIndex + 1, endIndex).join("")
+            endSnippet = curText[endIndex].toString().slice(endOffset);
+
+            newContextText = startSnippet + midSnippet + endSnippet;
+            return [startIndex, endIndex, startOffset, endOffset, newContextText];
+        }
 
         curScope = normalizedRange(selection);
-        expand(curScope);
-        console.log(curScope)
-        while (numMatches(document.body.textContent, curScope.toString()) > 1) {
-            expand(curScope)
+
+        curText = allText(document.body);
+
+        startIndex = curText.indexOf(curScope.startContainer);
+        endIndex = curText.indexOf(curScope.endContainer);
+
+        startOffset = curScope.startOffset;
+        endOffset = curScope.endOffset;
+
+        out = expand(startIndex, endIndex, startOffset, endOffset);
+
+        while (numMatches(document.body.innerText, out[4]) > 1) {
+            out = expand(out[0], out[1], out[2], out[3]);
         }
-        console.log("crashed?")
+        curScope.setStart(curText[out[0]], out[2]);
+        curScope.setEnd(curText[out[1]], out[3])
+
         return curScope;
     }
 
@@ -120,9 +124,11 @@ function captureSelection() {
 
         let key = newcomment["contextText"];
 
-        sendNewStyleComment(newcomment);
-
         useCommentDetails(pagelocation, key, newcomment);
+
+        establish_anchor(key, [newcomment], id);
+        display_anchor([newcomment]);
+
     });
 }
 
@@ -168,7 +174,6 @@ function useCommentDetails(pagelocation, key, wantedComment) {
             chrome.storage.local.get(['saved_comments'], (result) => {
                 console.log('Writing comment to chrome.storage!');
                 let savedComments = (result.saved_comments !== undefined) ? JSON.parse(result.saved_comments) : {};
-                console.log(savedComments)
                 let pageComments = (pagelocation in savedComments) ? savedComments[pagelocation] : {};
                 if (key in pageComments) {
                     console.log("in!")

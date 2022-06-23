@@ -8,10 +8,14 @@ const tabPromise = chrome.tabs.query({ active: true, currentWindow: true });
 
 commentButton.addEventListener('click', async () => {
     let [tab] = await tabPromise;
-    chrome.storage.sync.set({
+    chrome.storage.local.set({
         'comment': commentText.value.trimEnd()
     });
     console.log("set the comments")
+    chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ['/comments/createCommentHelpers.js'],
+    });
     chrome.scripting.executeScript({
         target: { tabId: tab.id },
         files: ['/comments/createComment.js'],

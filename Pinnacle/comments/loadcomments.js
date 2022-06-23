@@ -55,7 +55,8 @@ function findRange(contextText, selectedText, occurenceIndex) {
 
     curScope = document.body;
 
-    if (numMatches(curScope.textContent, contextText) > 1) {
+    appearances = numMatches(curScope.innerText, contextText)
+    if (appearances != 1) {
         return false;
     }
     
@@ -84,22 +85,23 @@ function findRange(contextText, selectedText, occurenceIndex) {
     return range;
 }
 
-function fillRange(range, onClick) {
-    function fillNode(node, startOffset, endOffset, onClick) {
+function fillRange(range, id) {
+    function fillNode(node, startOffset, endOffset, id) {
         if (node.textContent !== "") {
             let highlight = document.createElement('mark');
             highlight.classList.add('pinnacle-anchor-highlight');
-            temp = new Range()
+            highlight.classList.add(String(id));
+            temp = new Range();
             temp.setStart(node, startOffset);
             temp.setEnd(node, endOffset);
             temp.surroundContents(highlight);
         }
     }
-    function fillAllNodesBelow(node, onClick) {
+    function fillAllNodesBelow(node, id) {
         textNodes = allText(node)
         for (let i = 0; i < textNodes.length; i++) {
-            fillNode(textNodes[i], 0, autoLength(textNodes[i]), onClick);
-            // onclick stuff happens here
+            fillNode(textNodes[i], 0, autoLength(textNodes[i]), id);
+            // id stuff happens here
         }
     }
 
@@ -107,7 +109,7 @@ function fillRange(range, onClick) {
     end = range.endContainer;
     
     if (start.isSameNode(end)) {
-        fillNode(start, range.startOffset, range.endOffset, onClick);
+        fillNode(start, range.startOffset, range.endOffset, id);
         return;
     }
 
@@ -131,7 +133,7 @@ function fillRange(range, onClick) {
             toFill.push(range.startContainer);
         }
         // toFill.push(range.startContainer);
-        // fillAllNodesBelow(range.startContainer, onClick);
+        // fillAllNodesBelow(range.startContainer, id);
         start = range.startContainer;
     }
 
@@ -145,7 +147,7 @@ function fillRange(range, onClick) {
             range.setEnd(end.previousSibling, 0);
             toFill.push(range.endContainer);
         }
-        // fillAllNodesBelow(range.endContainer, onClick);
+        // fillAllNodesBelow(range.endContainer, id);
         end = range.endContainer;
     }
 
@@ -160,19 +162,19 @@ function fillRange(range, onClick) {
         end = range.endContainer;
     }
 
-    fillNode(textStart, prevStartOffset, autoLength(textStart), onClick);
-    fillNode(textEnd, 0, prevEndOffset, onClick);
+    fillNode(textStart, prevStartOffset, autoLength(textStart), id);
+    fillNode(textEnd, 0, prevEndOffset, id);
 
     for (let i = 0; i < toFill.length; i++) {
-        fillAllNodesBelow(toFill[i], onClick);
+        fillAllNodesBelow(toFill[i], id);
     }
 }
-function establish_anchor(key, comments) {
-    templateComment = comments[0]
+function establish_anchor(key, comments, id) {
+    templateComment = comments[0];
     for (let i = 0; i < comments.length; i++) {
         range = findRange(key, comments[i]["selectedText"], comments[i]["occurenceIndex"]);
         if (range !== false) {
-            fillRange(range, null);
+            fillRange(range, id);
         }
     }
 }
@@ -213,11 +215,24 @@ async function insert_comments() {
                         comments.push(result['saved_comments'][i]);
                     }
                 }
-                console.log("Server Comments Array: ", comments);
-
-                comments.forEach((x) => {
-                    console.log(x);
-                });
+            }
+            onclicks = []
+            id = 0;
+            comments.forEach((x) => {
+                console.log(x);
+                let commentsArray = x;
+                let key = x["contextText"];
+                establish_anchor(key, [commentsArray], id);
+                onclicks.push(() => { display_anchor([commentsArray]); });
+                id += 1;
+            });
+            highlights = document.body.getElementsByClassName("pinnacle-anchor-highlight");
+            for (let i = 0; i < highlights.length; i++) {
+                div = highlights[i];
+                if (typeof (div) == 'object' && div.onclick == null) {
+                    divID = parseInt(div.classList[1]);
+                    div.onclick = onclicks[divID]
+                }
             }
         });
     });

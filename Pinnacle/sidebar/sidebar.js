@@ -65,7 +65,8 @@ function gen_comment_elem(comment) {
     li.classList.add("pinnacle-comment");
 
     const dateString = tpDate.getMonth() + "/" + tpDate.getDate() + "/" + tpDate.getFullYear() + " " + tpDate.getHours() + ":" + tpDate.getMinutes();
-    li.textContent = dateString + comment["name"] + ":" + comment["commentText"];
+    // DATESTRING GOT REMOVED!
+    li.textContent = comment["name"] + ":" + comment["commentText"];
     return li;
 }
 function display_anchor(commentsArray) {

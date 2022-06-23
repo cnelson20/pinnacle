@@ -201,6 +201,7 @@ async function insert_comments() {
     response.json().then(data => {
         let comments = [];
 		//console.log(data);
+        console.log(data)
         for (let i = 0; i < data.length; i++) {
             if (data[i]['pageurl'] == window.location.toString().substring(window.location.toString().indexOf('//') + 2)) {
 				comments.push(data[i]);
@@ -209,11 +210,14 @@ async function insert_comments() {
        
         chrome.storage.local.get(['saved_comments'], (result) => {
             if (result['saved_comments'] != undefined) {
+                result = JSON.parse(result['saved_comments'])
+                keys = Object.keys(result)
                 let pageurl = window.location.toString().substring(window.location.toString().indexOf('//') + 2)
-                for (let i = 0; i < result['saved_comments'].length; i++) {
-                    if (result['saved_comments'][i]['pageurl'] == pageurl) {
-                        comments.push(result['saved_comments'][i]);
-                    }
+                if (result[pageurl] != undefined) {
+                    // this is what happens when 2 people implement different interaces, kids
+                    Object.values(result[pageurl]).forEach((item) => {
+                        comments.push(item[0])
+                    });
                 }
             }
             onclicks = []

@@ -29,6 +29,8 @@ function captureSelection() {
         function expand(startIndex, endIndex, startOffset, endOffset) {
             // curText is read only this time :)
             // moving up in this world
+            // you know what's funny is this tries to be a pure function, but ends up reading...
+            // and then mutating ;)
             while (!(startOffset - 1 > 0)) {
                 startIndex -= 1;
                 startOffset = autoLength(curText[startIndex])
@@ -45,8 +47,10 @@ function captureSelection() {
             midSnippet = curText.slice(startIndex + 1, endIndex).join("")
             endSnippet = curText[endIndex].toString().slice(endOffset);
 
-            newContextText = startSnippet + midSnippet + endSnippet;
-            return [startIndex, endIndex, startOffset, endOffset, newContextText];
+            curScope.setStart(curText[startIndex], startOffset);
+            curScope.setEnd(curText[endIndex], endOffset)
+
+            return [startIndex, endIndex, startOffset, endOffset];
         }
 
         curScope = normalizedRange(selection);
@@ -61,11 +65,9 @@ function captureSelection() {
 
         out = expand(startIndex, endIndex, startOffset, endOffset);
 
-        while (numMatches(document.body.innerText, out[4]) > 1) {
+        while (numMatches(document.body.innerText, range.toString()) > 1) {
             out = expand(out[0], out[1], out[2], out[3]);
         }
-        curScope.setStart(curText[out[0]], out[2]);
-        curScope.setEnd(curText[out[1]], out[3])
 
         return curScope;
     }

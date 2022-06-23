@@ -102,7 +102,7 @@ function captureSelection() {
     // you know what's funny is some browsers support multiple selection ranges, lmao. Let's pretend that that's not a thing :)
     // also let's limit comment length
 
-    chrome.storage.sync.get(['comment'], (result) => {
+    chrome.storage.local.get(['comment'], (result) => {
         newCommentText = result.comment;
         let newcomment = {
             "occurenceIndex": occurenceIndex,
@@ -120,12 +120,14 @@ function captureSelection() {
 
         let key = newcomment["contextText"];
 
+        sendNewStyleComment(newcomment);
+
         useCommentDetails(pagelocation, key, newcomment);
     });
 }
 
 function sendNewStyleComment(comment) {
-    chrome.storage.sync.get(['saveCommentsOnServer', 'userDesiredName'], (result) => {
+    chrome.storage.sync.get(['saveCommentsOnServer', 'userDesiredName'], async (result) => {
         if (result.saveCommentsOnServer) {
             let pagelocation = window.location.toString().substring(window.location.toString().indexOf('//') + 2);
             let request = {
@@ -140,10 +142,10 @@ function sendNewStyleComment(comment) {
                     "selectedText" : comment.selectedText,
                     "contextText" : comment.contextText,
                     "commentText" : comment.commentText,
-                    "name" : result.userDesiredName,
+                    "name" : result.userDesiredName != null ? result.userDesiredName : 'Anonymous',
                 }),
             };
-            fetch("https://pinnacle.grixisutils.site/konst_create.php", request);
+            await fetch("https://pinnacle.grixisutils.site/konst_create.php", request);
         }
     });
 }
@@ -154,28 +156,12 @@ function useCommentDetails(pagelocation, key, wantedComment) {
         return;
     }
     
+    console.log("log test");
     console.log(wantedComment);
 
     chrome.storage.sync.get(['saveCommentsOnServer', 'userDesiredName'], (result) => {
         if (result.saveCommentsOnServer !== false) {
-            let request = {
-                cache: 'no-cache',
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: new URLSearchParams({  
-                    pageurl : pagelocation, 
-                    divpath : wantedComment.anchorDomPath,              
-                    focus_text : wantedComment.anchorFocusText,
-                    commented_text : wantedComment.anchorText,
-                    comment_content : wantedComment.commentText,
-                    base_offset : wantedComment.anchorOffsets[0],
-                    extent_offset : wantedComment.anchorOffsets[1],
-					name : (result.userDesiredName != null ? result.userDesiredName : 'Anonymous'),
-                }),
-            };
-            let responsePromise = fetch('https://pinnacle.grixisutils.site/createcomment.php', request);
+            sendNewStyleComment(wantedComment);
         }
         else {
             console.log('Querying chrome.storage so we can write to it ');
@@ -200,7 +186,7 @@ function useCommentDetails(pagelocation, key, wantedComment) {
     return;
 }
 
-async function createComment() {
+function createComment() {
     console.log("createComment()");
 
     captureSelection();

@@ -177,22 +177,6 @@ function establish_anchor(key, comments) {
     }
 }
 
-async function loadNewStyleCommentsFromServer() {
-    let pagelocation = window.location.toString().substring(window.location.toString().indexOf('//') + 2);
-    let request = {
-        cache: 'no-cache',
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({  
-            pageurl : pagelocation, 
-        }),
-    };
-    let response = await fetch("https://pinnacle.grixisutils.site/konst_get.php");
-    return await response.json();
-}
-
 async function insert_comments() {
     console.log("is this running?");
     if ('pinnacle__loadedCommentsYet' in localStorage) {
@@ -211,52 +195,31 @@ async function insert_comments() {
             pageurl : pagelocation, 
         }),
     };
-    let response = await fetch("https://pinnacle.grixisutils.site/get.php", request);
+    let response = await fetch("https://pinnacle.grixisutils.site/konst_get.php", request);
     response.json().then(data => {
-        let comments = {};
+        let comments = [];
 		//console.log(data);
         for (let i = 0; i < data.length; i++) {
             if (data[i]['pageurl'] == window.location.toString().substring(window.location.toString().indexOf('//') + 2)) {
-				let c = {
-					"anchorDomPath" : data[i]['divpath'],
-					"anchorFocusText" : data[i]['focus_text'],
-					"anchorText" : data[i]['commented_text'],
-					"anchorOffsets" : [parseInt(data[i]['base_offset']), parseInt(data[i]['extent_offset'])],
-					"commentText" : data[i]['comment_content'],
-					"timestamp" : parseInt(data[i]['timestamp']),
-                    "name" : data[i]['name'],
-				};
-				if (c["anchorDomPath"] in comments) {
-					comments[c["anchorDomPath"]].push(c);
-				} else {
-					comments[c["anchorDomPath"]] = [c];
-				}
+				comments.push(data[i]);
 			}
         };
-        console.log("Server Comments Array: ", comments);
-        
+       
         chrome.storage.local.get(['saved_comments'], (result) => {
             if (result['saved_comments'] != undefined) {
-                let chromeComments = result['saved_comments'];
-                for (let i = 0; i < chromeComments.length; i++) {
-                    if (chromeComments[i][0] != pagelocation) {
-                        continue;
+                let pageurl = window.location.toString().substring(window.location.toString().indexOf('//') + 2)
+                for (let i = 0; i < result['saved_comments'].length; i++) {
+                    if (result['saved_comments'][i]['pageurl'] == pageurl) {
+                        comments.push(result['saved_comments'][i]);
                     }
-                    if (!(chromeComments[i][1] in comments)) {
-                        comments[chromeComments[i][1]] = new Array();
-                    }
-                    console.log(chromeComments[i]);
-                    comments[chromeComments[i][1]].push(chromeComments[i][2]);
                 }
-            }
+                console.log("Server Comments Array: ", comments);
 
-            Object.entries(JSON.parse(result.saved_comments)[pagelocation]).forEach((x) => {
-                let [key, commentsArray] = x;
-                establish_anchor(key, commentsArray);
-            });
+                comments.forEach((x) => {
+                    console.log(x);
+                });
+            }
         });
-        /*if (comments != null) { comments = JSON.parse(comments)[pagelocation]; }
-        if (comments == null) { comments = {}; }*/
     });
 }
 

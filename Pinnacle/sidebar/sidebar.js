@@ -66,7 +66,7 @@ function gen_comment_elem(comment) {
 
     const dateString = tpDate.getMonth() + "/" + tpDate.getDate() + "/" + tpDate.getFullYear() + " " + tpDate.getHours() + ":" + tpDate.getMinutes();
     // DATESTRING GOT REMOVED!
-    li.textContent = comment["name"] + ":" + comment["commentText"];
+    li.textContent = comment["name"] + ": " + comment["commentText"];
     return li;
 }
 function display_anchor(commentsArray) {

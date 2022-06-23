@@ -247,7 +247,6 @@ async function insert_comments() {
                     if (!(chromeComments[i][1] in comments)) {
                         comments[chromeComments[i][1]] = new Array();
                     }
-                    console.log(chromeComments[i]);
                     comments[chromeComments[i][1]].push(chromeComments[i][2]);
                 }
             }
@@ -264,7 +263,6 @@ async function insert_comments() {
                 div = highlights[i];
                 if (typeof (div) == 'object' && div.onclick == null) {
                     divID = parseInt(div.classList[1]);
-                    console.log(divID)
                     div.onclick = onclicks[divID]
                 }
             }

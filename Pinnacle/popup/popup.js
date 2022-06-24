@@ -8,10 +8,14 @@ const tabPromise = chrome.tabs.query({ active: true, currentWindow: true });
 
 commentButton.addEventListener('click', async () => {
     let [tab] = await tabPromise;
-    chrome.storage.sync.set({
+    chrome.storage.local.set({
         'comment': commentText.value.trimEnd()
     });
     console.log("set the comments")
+    chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ['/comments/createCommentHelpers.js'],
+    });
     chrome.scripting.executeScript({
         target: { tabId: tab.id },
         files: ['/comments/createComment.js'],
@@ -24,7 +28,7 @@ clearComments.addEventListener('click', async () => {
         target: { tabId: tab.id },
         func: clearCommentsFunction,
     });
-    chrome.storage.local.set({'saved_comments' : []});
+    chrome.storage.local.set({'saved_comments' : JSON.stringify({})});
 });
 
 function clearCommentsFunction() {

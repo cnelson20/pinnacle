@@ -1,129 +1,119 @@
-/*
-    TODO: 
-    - make comment body not inherit styling from the parent element
-*/
-
-var newCommentText = '';
-
-function getSpecificDivChildren(element, divtype) {
-    let possList = element.querySelectorAll(divtype);
-    let yesList = [];
-    for (let i = 0; i < possList.length; i++) {
-        if (possList[i].parentElement === element) {
-            yesList.push(possList[i]);
-        }
-    }
-    return yesList;
+function numMatches(text, regex) {
+    // stack overflow God bless
+    // https://stackoverflow.com/questions/3446170/escape-string-for-use-in-javascript-regex
+    regex = regex.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return [...text.matchAll(new RegExp(`(?=${regex})`, "gm"))].length;
 }
-
-/*
-    Given a DOM path for an HTML object, return the lowest object in the path that is a unique div.
-*/
-function getElementByDomPathLimit(string) {
-    let split = string.split(" > ");
-    let elem = document;
-    for (let i = 0; i < split.length; i++) {
-        if (split[i].includes(':')) {
-            if (split[i].includes('nth-of-type(')) {
-                let tagname = split[i].substring(0, split[i].indexOf(':'));
-                let righttagchildren = getSpecificDivChildren(elem, tagname);
-                let targetIndex = parseInt(split[i].substring(split[i].indexOf('nth-of-type(') + 'nth-of-type('.length));
-
-                /*console.log(elem);
-                console.log(split[i]);
-                console.log(tagname);
-                console.log(righttagchildren);
-                console.log(righttagchildren[targetIndex]);  
-                */
-                elem = righttagchildren[targetIndex - 1];
-            } else {
-                return elem;
-            }
-        } else {
-            elem = elem.getElementsByTagName(split[i])[0];
-        }
+function autoLength(node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+        return node.textContent.length
     }
-    return elem;
+    else {
+        return node.childNodes.length
+    }
 }
-
-/* 
-    Given div, return string of div path 
-*/
-function getDomPath(el) {
-    if (!el) {
-        return;
-    }
-    var stack = [];
-    var isShadow = false;
-    while (el.parentNode != null) {
-        // console.log(el.nodeName);
-        var sibCount = 0;
-        var sibIndex = 0;
-        // get sibling indexes
-        for (var i = 0; i < el.parentNode.childNodes.length; i++) {
-            var sib = el.parentNode.childNodes[i];
-            if (sib.nodeName == el.nodeName) {
-                if (sib === el) {
-                    sibIndex = sibCount;
-                }
-                sibCount++;
-            }
-        }
-        // if ( el.hasAttribute('id') && el.id != '' ) { no id shortcuts, ids are not unique in shadowDom
-        //   stack.unshift(el.nodeName.toLowerCase() + '#' + el.id);
-        // } else
-        var nodeName = el.nodeName.toLowerCase();
-        if (isShadow) {
-            nodeName += "::shadow";
-            isShadow = false;
-        }
-        if (sibCount > 1) {
-            stack.unshift(nodeName + ':nth-of-type(' + (sibIndex + 1) + ')');
-        } else {
-            stack.unshift(nodeName);
-        }
-        el = el.parentNode;
-        if (el.nodeType === 11) { // for shadow dom, we
-            isShadow = true;
-            el = el.host;
-        }
-    }
-    stack.splice(0, 1); // removes the html element
-    return stack.join(' > ');
-}
-
+    
 function captureSelection() {
-    let s = document.getSelection();
-    for (let i = 0; i < s.focusNode.parentElement.classList.length; i++) {
-        //console.log(s.focusNode.parentElement.classList[i].substring(0,'pinnacle-'.length));
-        let name = s.focusNode.parentElement.classList[i];
-        if (name.substring(0, 'pinnacle-'.length) == 'pinnacle-' && name != 'pinnacle-anchor-highlight') {
-            return [];
+    function normalizedRange(selection) {
+        range = selection.getRangeAt(0).cloneRange()
+        if (selection.anchorNode.compareDocumentPosition(selection.focusNode) !== Node.DOCUMENT_POSITION_PRECEDING) {
+            return range;
         }
+        range.setStart(selection.focusNode, selection.focusOffset);
+        range.setEnd(selection.anchorNode, selection.anchorOffset);
+        return range
     }
-    let anchorElem = s.focusNode.parentElement;
-    if (anchorElem.tagName == 'MARK' && anchorElem.parentElement.tagName == "SPAN") { //rewrite this to ignore our own markups
-        anchorElem = anchorElem.parentElement.parentElement;
+    function findUniqueContext(selection) {
+        /* return an expanded range from selection */
+
+        function expand(startIndex, endIndex, startOffset, endOffset) {
+            // curText is read only this time :)
+            // moving up in this world
+            // you know what's funny is this tries to be a pure function, but ends up reading...
+            // and then mutating ;)
+            while (!(startOffset - 1 > 0)) {
+                startIndex -= 1;
+                startOffset = autoLength(curText[startIndex])
+            }
+            startOffset -= 1;
+
+            while (!(endOffset + 1 < autoLength(curText[endIndex]))) {
+                endIndex += 1;
+                endOffset = 0;
+            }
+            endOffset += 1;
+
+            startSnippet = curText[startIndex].toString().slice(startOffset, autoLength(curText[startIndex]));
+            midSnippet = curText.slice(startIndex + 1, endIndex).join("")
+            endSnippet = curText[endIndex].toString().slice(endOffset);
+
+            curScope.setStart(curText[startIndex], startOffset);
+            curScope.setEnd(curText[endIndex], endOffset)
+
+            return [startIndex, endIndex, startOffset, endOffset];
+        }
+
+        curScope = normalizedRange(selection);
+
+        curText = allText(document.body);
+
+        startIndex = curText.indexOf(curScope.startContainer);
+        endIndex = curText.indexOf(curScope.endContainer);
+
+        startOffset = curScope.startOffset;
+        endOffset = curScope.endOffset;
+
+        out = expand(startIndex, endIndex, startOffset, endOffset);
+
+        while (numMatches(document.body.innerText, range.toString()) > 1) {
+            out = expand(out[0], out[1], out[2], out[3]);
+        }
+
+        return curScope;
     }
 
-    /*
-    let newcomment = [
-        getDomPath(anchorElem),
-        s.focusNode.data.substring(s.baseOffset, s.extentOffset),
-        newCommentText, s.focusNode.textContent,
-        s.baseOffset, s.extentOffset,
-        getInverseBackgroundColor(anchorElem)
-    ];
-    */
+    function findOccurenceIndex(uniqueContext, selection) {
+        /* within the unique ancestor, what is the (0-indexed) index of the text of the actual range
+        in an array of children which all contain selectedText ? */
+        range = normalizedRange(selection);
 
-    chrome.storage.sync.get(['comment'], (result) => {
+        selectedText = range.toString();
+
+        if (numMatches(uniqueContext.toString(), selectedText) == 1) {
+            return 0;
+        }
+
+        curScope = range.startContainer;
+        stack = [
+            curScope.textContent.substring(uniqueContext.startOffset, range.startOffset),
+            selectedText
+        ];
+        while (!curScope.isSameNode(uniqueContext.startContainer)) {
+            curSibling = curScope.previousSibling;
+            while (curSibling != undefined) {
+                stack.unshift(curSibling.textContent);
+                curSibling = curSibling.previousSibling;
+            }
+        }
+        return numMatches(stack.join(""), selectedText) - 1
+    }
+
+    let s = document.getSelection();
+    uniqueContext = findUniqueContext(s);
+    occurenceIndex = findOccurenceIndex(uniqueContext, s);
+
+    console.log(uniqueContext);
+    console.log(occurenceIndex);
+   
+    // you know what's funny is some browsers support multiple selection ranges, lmao. Let's pretend that that's not a thing :)
+    // also let's limit comment length
+
+    chrome.storage.local.get(['comment'], (result) => {
         newCommentText = result.comment;
-        console.log(newCommentText);
         let newcomment = {
-            "anchorDomPath": getDomPath(anchorElem) + "__" + s.focusNode.data.substring(s.baseOffset, s.extentOffset),
-            "anchorFocusText": s.focusNode.textContent,
-            "anchorText": s.focusNode.data.substring(s.baseOffset, s.extentOffset),
-            "anchorOffsets": [s.baseOffset, s.extentOffset],
+            "occurenceIndex": occurenceIndex,
+            "selectedText": normalizedRange(s).toString(),
+            "contextText": uniqueContext.toString(),
             "commentText": newCommentText
         };
         /* later... 
@@ -134,10 +124,37 @@ function captureSelection() {
 
         let pagelocation = window.location.toString().substring(window.location.toString().indexOf('//') + 2);
 
-        let key = newcomment["anchorDomPath"];
-
+        let key = newcomment["contextText"];
 
         useCommentDetails(pagelocation, key, newcomment);
+
+        establish_anchor(key, [newcomment], id);
+        display_anchor([newcomment]);
+
+    });
+}
+
+function sendNewStyleComment(comment) {
+    chrome.storage.sync.get(['saveCommentsOnServer', 'userDesiredName'], async (result) => {
+        if (result.saveCommentsOnServer) {
+            let pagelocation = window.location.toString().substring(window.location.toString().indexOf('//') + 2);
+            let request = {
+                cache: 'no-cache',
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({  
+                    "pageurl" : pagelocation, 
+                    "occurenceIndex" : comment.occurenceIndex,
+                    "selectedText" : comment.selectedText,
+                    "contextText" : comment.contextText,
+                    "commentText" : comment.commentText,
+                    "name" : result.userDesiredName != null ? result.userDesiredName : 'Anonymous',
+                }),
+            };
+            await fetch("https://pinnacle.grixisutils.site/konst_create.php", request);
+        }
     });
 }
 
@@ -149,11 +166,6 @@ function useCommentDetails(pagelocation, key, wantedComment) {
     
     //display the new comment
     //display_anchor([ wantedComment ]);
-    chrome.storage.sync.get(['userDesiredName'], (result) => {
-        wantedComment.name = (result.userDesiredName != null ? result.userDesiredName : 'Anonymous');
-        wantedComment.timestamp = Date.now();
-        establish_anchor(key, [ wantedComment ]);
-    });
 
     //you're supposed to add to the divpath technically
     /*console.log(pagelocation);
@@ -162,31 +174,23 @@ function useCommentDetails(pagelocation, key, wantedComment) {
 
     chrome.storage.sync.get(['saveCommentsOnServer', 'userDesiredName'], (result) => {
         if (result.saveCommentsOnServer !== false) {
-            let request = {
-                cache: 'no-cache',
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: new URLSearchParams({  
-                    pageurl : pagelocation, 
-                    divpath : wantedComment.anchorDomPath,              
-                    focus_text : wantedComment.anchorFocusText,
-                    commented_text : wantedComment.anchorText,
-                    comment_content : wantedComment.commentText,
-                    base_offset : wantedComment.anchorOffsets[0],
-                    extent_offset : wantedComment.anchorOffsets[1],
-					name : (result.userDesiredName != null ? result.userDesiredName : 'Anonymous'),
-                }),
-            };
-            let responsePromise = fetch('https://pinnacle.grixisutils.site/createcomment.php', request);
-        } else {
+            sendNewStyleComment(wantedComment);
+        }
+        else {
             console.log('Querying chrome.storage so we can write to it ');
             chrome.storage.local.get(['saved_comments'], (result) => {
                 console.log('Writing comment to chrome.storage!');
-                let savedComments = (result.saved_comments !== undefined) ? result.saved_comments : [];
-                savedComments.push([pagelocation, key, wantedComment]);
-                chrome.storage.local.set({'saved_comments' : savedComments});
+                let savedComments = (result.saved_comments !== undefined) ? JSON.parse(result.saved_comments) : {};
+                let pageComments = (pagelocation in savedComments) ? savedComments[pagelocation] : {};
+                if (key in pageComments) {
+                    console.log("in!")
+                    pageComments[key].push(wantedComment);
+                }
+                else {
+                    pageComments[key] = [wantedComment];
+                }
+                savedComments[pagelocation] = pageComments;
+                chrome.storage.local.set({ 'saved_comments': JSON.stringify(savedComments) });
             });
         }
     });
@@ -194,8 +198,8 @@ function useCommentDetails(pagelocation, key, wantedComment) {
     return;
 }
 
-async function createComment() {
-    //console.log("createComment()");
+function createComment() {
+    console.log("createComment()");
 
     captureSelection();
 }

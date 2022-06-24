@@ -166,11 +166,6 @@ function useCommentDetails(pagelocation, key, wantedComment) {
     
     //display the new comment
     //display_anchor([ wantedComment ]);
-    chrome.storage.sync.get(['userDesiredName'], (result) => {
-        wantedComment.name = (result.userDesiredName != null ? result.userDesiredName : 'Anonymous');
-        wantedComment.timestamp = Date.now();
-        establish_anchor(key, [ wantedComment ]);
-    });
 
     //you're supposed to add to the divpath technically
     /*console.log(pagelocation);

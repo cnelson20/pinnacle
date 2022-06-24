@@ -70,6 +70,8 @@ function gen_comment_elem(comment) {
     return li;
 }
 function display_anchor(commentsArray) {
+    console.log(commentsArray);
+
     empty_changing();
     const sidebar = document.getElementById("pinnacle-changing");
     const list = document.createElement("ul");
